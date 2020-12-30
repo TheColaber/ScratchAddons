@@ -278,28 +278,40 @@ const vue = new Vue({
         }, 0);
       });
     },
-    uploadSettings() {
+    setSettings() {
       let loadButton = document.querySelector(".load-settings-button");
+      let uploadButton = document.querySelector(".load-settings-upload");
       loadButton.click();
-      loadButton.addEventListener("change", async (e) => {
+      loadButton.addEventListener("change", (e) => {
+        uploadButton.classList.remove("gray");
+      }, { once: true });
+      uploadButton.addEventListener("mousedown", async () => {
         let file = loadButton.files[0];
-        if (file && file.type == "application/json") {
-          let text = JSON.parse(await file.text());
-          this.manifests.forEach((addonManifest, i) => {
-            let addonID = addonManifest._addonId;
-            if (text[addonID]) {
-              if (!addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
-              if (addonManifest.settings) {
-                addonManifest.settings.forEach((addonSetting, i) => {
-                  let settingID = addonSetting.id;
-                  this.updateOption(settingID, text[addonID][settingID], addonManifest);
-                });
-              }
-            } else {
-              if (addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
-            }
-          });
+        if (!file) {
+          alert("Please chose a file first.");
+          return;
         }
+        if (file.type != "application/json") {
+          alert("Please choose a json file.");
+          return;
+        }
+        let text = JSON.parse(await file.text());
+        this.manifests.forEach((addonManifest, i) => {
+          let addonID = addonManifest._addonId;
+          if (text[addonID]) {
+            if (!addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
+            if (addonManifest.settings) {
+              addonManifest.settings.forEach((addonSetting, i) => {
+                let settingID = addonSetting.id;
+                this.updateOption(settingID, text[addonID][settingID], addonManifest);
+              });
+            }
+          } else {
+            if (addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
+          }
+        });
+        loadButton.value = "";
+        uploadButton.classList.add("gray");
       }, { once: true });
     },
   },

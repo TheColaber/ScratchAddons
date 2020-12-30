@@ -363,6 +363,9 @@ h1 {
   outline: none;
   background: #151515;
 }
+.gray {
+  filter: opacity(0.5);
+}
 
 .clear-button {
   border-radius: 0 4px 4px 0px;
