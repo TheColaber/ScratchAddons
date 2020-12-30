@@ -108,7 +108,6 @@
         <div class="addons-container">
           <div
             class="addon-body"
-            :data-id="addon._addonId"
             v-for="addon of manifests"
             v-show="addonMatchesFilters(addon) && (selectedTab === 'all' || addon._category === selectedTab)"
           >
@@ -175,7 +174,7 @@
                 >
               </div>
               <div class="settings-column" v-bind:class="[!addon._enabled ? 'disabled' : '']">
-                <div class="addon-setting" :data-setting-id="setting.id" v-for="setting of addon.settings">
+                <div class="addon-setting" v-for="setting of addon.settings">
                   <div class="setting-label" v-html="textParse(setting.name, addon)"></div>
                   <input
                     type="checkbox"

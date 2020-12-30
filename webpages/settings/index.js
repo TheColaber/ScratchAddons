@@ -281,29 +281,26 @@ const vue = new Vue({
     uploadSettings() {
       let loadButton = document.querySelector(".load-settings-button");
       loadButton.click();
-      loadButton.onchange = async (e) => {
+      loadButton.addEventListener("change", async (e) => {
         let file = loadButton.files[0];
-        if (file.type == "application/json") {
+        if (file && file.type == "application/json") {
           let text = JSON.parse(await file.text());
-          document.querySelectorAll(".addon-body").forEach((addonBody, i) => {
-            let addonData = text[addonBody.getAttribute("data-id")];
-            let addonSwitch = addonBody.querySelector(".switch");
-            if (addonData) {
-              if (addonSwitch.getAttribute("state") == "off") addonSwitch.click();
-              addonBody.querySelectorAll(".addon-setting").forEach((addonSetting, i) => {
-                let settingID = addonSetting.getAttribute("data-setting-id");
-                this.updateOption(
-                  settingID,
-                  addonData[settingID],
-                  this.manifests.find((addon) => addon._addonId == addonBody.getAttribute("data-id"))
-                );
-              });
+          this.manifests.forEach((addonManifest, i) => {
+            let addonID = addonManifest._addonId;
+            if (text[addonID]) {
+              if (!addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
+              if (addonManifest.settings) {
+                addonManifest.settings.forEach((addonSetting, i) => {
+                  let settingID = addonSetting.id;
+                  this.updateOption(settingID, text[addonID][settingID], addonManifest);
+                });
+              }
             } else {
-              if (addonSwitch.getAttribute("state") == "on") addonSwitch.click();
+              if (addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
             }
           });
         }
-      };
+      }, { once: true });
     },
   },
   watch: {
