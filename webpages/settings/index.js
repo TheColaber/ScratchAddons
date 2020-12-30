@@ -1,3 +1,4 @@
+import downloadBlob from "../../libraries/download-blob.js";
 const NEW_ADDONS = ["color-picker"];
 
 //theme switching
@@ -266,16 +267,7 @@ const vue = new Vue({
         let settings = {};
         addons.forEach((addon, i) => (settings[addon] = addonSettings[addon] ? addonSettings[addon] : {}));
         let file = new Blob([JSON.stringify(settings)], { type: "application/json" });
-        var a = document.createElement("a");
-        let downloadUrl = URL.createObjectURL(file);
-        a.href = downloadUrl;
-        a.download = "sa-settings";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(downloadUrl);
-        }, 0);
+        downloadBlob("scratch-addons-settings.json", file)
       });
     },
     setSettings() {
