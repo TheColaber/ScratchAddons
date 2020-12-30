@@ -281,26 +281,32 @@ const vue = new Vue({
     uploadSettings() {
       let loadButton = document.querySelector(".load-settings-button");
       loadButton.click();
-      loadButton.addEventListener("change", async (e) => {
-        let file = loadButton.files[0];
-        if (file && file.type == "application/json") {
-          let text = JSON.parse(await file.text());
-          this.manifests.forEach((addonManifest, i) => {
-            let addonID = addonManifest._addonId;
-            if (text[addonID]) {
-              if (!addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
-              if (addonManifest.settings) {
-                addonManifest.settings.forEach((addonSetting, i) => {
-                  let settingID = addonSetting.id;
-                  this.updateOption(settingID, text[addonID][settingID], addonManifest);
-                });
+      loadButton.addEventListener(
+        "change",
+        async (e) => {
+          let file = loadButton.files[0];
+          if (file && file.type == "application/json") {
+            let text = JSON.parse(await file.text());
+            this.manifests.forEach((addonManifest, i) => {
+              let addonID = addonManifest._addonId;
+              if (text[addonID]) {
+                if (!addonManifest._enabled)
+                  this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
+                if (addonManifest.settings) {
+                  addonManifest.settings.forEach((addonSetting, i) => {
+                    let settingID = addonSetting.id;
+                    this.updateOption(settingID, text[addonID][settingID], addonManifest);
+                  });
+                }
+              } else {
+                if (addonManifest._enabled)
+                  this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
               }
-            } else {
-              if (addonManifest._enabled) this.toggleAddonRequest(this.manifests.find((addon) => addon._addonId == addonID));
-            }
-          });
-        }
-      }, { once: true });
+            });
+          }
+        },
+        { once: true }
+      );
     },
   },
   watch: {
