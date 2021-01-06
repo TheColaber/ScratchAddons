@@ -267,7 +267,7 @@ const vue = new Vue({
         let settings = {};
         addons.forEach((addon, i) => (settings[addon] = addonSettings[addon] ? addonSettings[addon] : {}));
         let file = new Blob([JSON.stringify(settings)], { type: "application/json" });
-        downloadBlob("scratch-addons-settings.json", file)
+        downloadBlob("scratch-addons-settings.json", file);
       });
     },
     setSettings() {
