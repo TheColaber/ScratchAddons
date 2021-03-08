@@ -36,6 +36,7 @@
     "page": "webpages/settings/index.html",
     "open_in_tab": true
   },
+  "devtools_page": "webpages/devtools/devtools.html",
   "homepage_url": "https://scratchaddons.com",
   "incognito": "not_allowed",
   "permissions": [

@@ -15,7 +15,11 @@ export default async function runAddonUserscripts({ addonId, scripts, traps }) {
     const loadUserscript = async () => {
       await scratchAddons.l10n.loadByAddonId(addonId);
       const module = await import(scriptUrl);
-      const log = _realConsole.log.bind(console, `%c[${addonId}]`, "color:darkorange; font-weight: bold;");
+      const log = (...params) => {
+        params = [ `%c[${addonId}]`, "color:darkorange; font-weight: bold;", ...params];
+        console.log(params);
+        _realConsole.log(...params)
+      };
       const warn = _realConsole.warn.bind(console, `%c[${addonId}]`, "color:darkorange font-weight: bold;");
       const msg = (key, placeholders) =>
         scratchAddons.l10n.get(key.startsWith("/") ? key.slice(1) : `${addonId}/${key}`, placeholders);
