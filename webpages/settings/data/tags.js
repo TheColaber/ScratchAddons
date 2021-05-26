@@ -14,6 +14,12 @@ export default [
     color: "blue",
   },
   {
+    name: "featured",
+    tooltipText: "featuredTooltip",
+    matchName: "featured",
+    color: "yellow",
+  },
+  {
     name: "new",
     matchName: "new",
     color: "purple",
