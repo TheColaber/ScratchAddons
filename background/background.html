@@ -1,6 +1,9 @@
 <head>
   <meta charset="UTF-8" />
 
+  <script src="../libraries/thirdparty/cs/comlink-extension.js"></script>
+  <script src="../libraries/thirdparty/cs/comlink.js"></script>
+
   <!-- Transition from Scratch Messaging Extension -->
   <script src="transition.js" type="module"></script>
 
@@ -32,4 +35,7 @@
   <script src="handle-settings-page.js" type="module"></script>
   <script src="handle-licenses.js" type="module"></script>
   <script src="handle-unsupported-version.js" type="module"></script>
+
+  <!-- Load Comlink scripts last, so all the other scripts can add properties -->
+  <script src="comlink.js" type="module"></script>
 </head>

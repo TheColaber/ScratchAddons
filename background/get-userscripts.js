@@ -225,13 +225,12 @@ chrome.webRequest.onResponseStarted.addListener(
   }
 );
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (!request.contentScriptReady) return;
+bg.contentScriptReady = async (url) => {
   if (scratchAddons.localState.allReady) {
     const identity = createCsIdentity({
-      tabId: sender.tab.id,
+      tabId: sender.tab.id, // We need the tab and frame id, but how
       frameId: sender.frameId,
-      url: request.contentScriptReady.url,
+      url: request.contentScriptReady,
     });
     const getCacheEntry = () => csInfoCache.get(identity);
     let cacheEntry = getCacheEntry();
@@ -242,20 +241,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           if (!cacheEntry) {
             scratchAddons.localEvents.removeEventListener("csInfoCacheUpdated", thisFunction);
           } else if (!cacheEntry.loading) {
-            sendResponse(cacheEntry.info);
             csInfoCache.delete(identity);
             scratchAddons.localEvents.removeEventListener("csInfoCacheUpdated", thisFunction);
+            return cacheEntry.info;
           }
         });
       } else {
-        sendResponse(cacheEntry.info);
         csInfoCache.delete(identity);
+        return cacheEntry.info;
       }
     } else {
-      getContentScriptInfo(request.contentScriptReady.url).then((info) => {
-        sendResponse(info);
-      });
-      return true;
+      return await getContentScriptInfo(request.contentScriptReady.url);
     }
   } else {
     // Wait until manifests, addon.auth and addon.settings are ready
@@ -269,7 +265,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     );
     return true;
   }
-});
+};
 // In case a tab messaged us before we registered the event above,
 // we notify them they can resend the contentScriptInfo message
 chrome.tabs.query({}, (tabs) =>
@@ -292,8 +288,7 @@ const WELL_KNOWN_PATTERNS = {
   newPostScreens: /^\/discuss\/(?:topic\/\d+|\d+\/topic\/add)\/?$/,
   editingScreens: /^\/discuss\/(?:topic\/\d+|\d+\/topic\/add|post\/\d+\/edit|settings\/[\w-]+)\/?$/,
   forums: /^\/discuss(?!\/m(?:$|\/))(?:\/.*)?$/,
-  scratchWWWNoProject:
-    /^\/(?:about|annual-report|camp|conference\/20(?:1[79]|[2-9]\d|18(?:\/(?:[^\/]+\/details|expect|plan|schedule))?)|contact-us|credits|developers|dmca|download(?:\/scratch2)?|educators(?:\/faq|register|waiting)?|explore\/(?:project|studio)s\/\w+|info\/faq|community_guidelines|ideas|join|messages|parents|privacy_policy|research|scratch_1\.4|search\/(?:project|studio)s|sec|starter-projects|classes\/(?:complete_registration|[^\/]+\/register\/[^\/]+)|signup\/[^\/]+|terms_of_use|wedo(?:-legacy)?|ev3|microbit|vernier|boost)\/?$/,
+  scratchWWWNoProject: /^\/(?:about|annual-report|camp|conference\/20(?:1[79]|[2-9]\d|18(?:\/(?:[^\/]+\/details|expect|plan|schedule))?)|contact-us|credits|developers|dmca|download(?:\/scratch2)?|educators(?:\/faq|register|waiting)?|explore\/(?:project|studio)s\/\w+|info\/faq|community_guidelines|ideas|join|messages|parents|privacy_policy|research|scratch_1\.4|search\/(?:project|studio)s|sec|starter-projects|classes\/(?:complete_registration|[^\/]+\/register\/[^\/]+)|signup\/[^\/]+|terms_of_use|wedo(?:-legacy)?|ev3|microbit|vernier|boost)\/?$/,
 };
 
 const WELL_KNOWN_MATCHERS = {

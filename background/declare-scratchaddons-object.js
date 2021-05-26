@@ -4,6 +4,8 @@ import BackgroundLocalizationProvider from "./l10n.js";
 
 window.scratchAddons = {};
 
+window.bg = {};
+
 // Store addon objects for persistent scripts
 scratchAddons.addonObjects = [];
 

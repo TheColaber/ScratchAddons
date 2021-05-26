@@ -4,36 +4,37 @@ try {
   throw "Scratch Addons: not first party iframe";
 }
 
+const _bg_ = Comlink.wrap(ComlinkExtension.createEndpoint(chrome.runtime.connect()));
+
 let pseudoUrl; // Fake URL to use if response code isn't 2xx
 
 let receivedResponse = false;
 const onMessageBackgroundReady = (request, sender, sendResponse) => {
   if (request === "backgroundListenerReady" && !receivedResponse) {
-    chrome.runtime.sendMessage({ contentScriptReady: { url: location.href } }, onResponse);
+    onResponse(_bg_.contentScriptReady(location.href));
   }
 };
 chrome.runtime.onMessage.addListener(onMessageBackgroundReady);
 const onResponse = (res) => {
-  if (res) {
-    console.log("[Message from background]", res);
-    chrome.runtime.onMessage.removeListener(onMessageBackgroundReady);
-    receivedResponse = true;
-    if (res.httpStatusCode === null || String(res.httpStatusCode)[0] === "2") onInfoAvailable(res);
-    else {
-      pseudoUrl = `https://scratch.mit.edu/${res.httpStatusCode}/`;
-      console.log(`Status code was not 2xx, replacing URL to ${pseudoUrl}`);
-      chrome.runtime.sendMessage({ contentScriptReady: { url: pseudoUrl } }, onResponse);
+  res.then((res) => {
+    if (res) {
+      console.log("[Message from background]", res);
+      chrome.runtime.onMessage.removeListener(onMessageBackgroundReady);
+      receivedResponse = true;
+      if (res.httpStatusCode === null || String(res.httpStatusCode)[0] === "2") onInfoAvailable(res);
+      else {
+        pseudoUrl = `https://scratch.mit.edu/${res.httpStatusCode}/`;
+        console.log(`Status code was not 2xx, replacing URL to ${pseudoUrl}`);
+        onResponse(_bg_.contentScriptReady(pseudoUrl));
+      }
     }
-  }
+  });
 };
-chrome.runtime.sendMessage({ contentScriptReady: { url: location.href } }, onResponse);
+onResponse(_bg_.contentScriptReady(location.href));
 
 const DOLLARS = ["$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"];
 
-const promisify =
-  (callbackFn) =>
-  (...args) =>
-    new Promise((resolve) => callbackFn(...args, resolve));
+const promisify = (callbackFn) => (...args) => new Promise((resolve) => callbackFn(...args, resolve));
 
 let _page_ = null;
 let globalState = null;
@@ -255,7 +256,7 @@ async function onInfoAvailable({ globalState: globalStateMsg, l10njson, addonsWi
     if (document.querySelector("meta[name='format-detection']")) {
       // scratch-www studio
       pseudoUrl = location.href.replace("/studios/", "/studios_www/");
-      chrome.runtime.sendMessage({ contentScriptReady: { url: pseudoUrl } }, onResponse);
+      onResponse(_bg_.contentScriptReady(pseudoUrl));
       return;
     }
   }
