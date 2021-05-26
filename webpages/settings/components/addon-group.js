@@ -3,7 +3,9 @@ export default async function ({ template }) {
     props: ["group"],
     template,
     data() {
-      return {};
+      return {
+        gridLayout: this.group.id === "recommended" || this.group.id === "featured",
+      };
     },
     computed: {
       shouldShow() {
