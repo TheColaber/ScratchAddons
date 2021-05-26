@@ -76,10 +76,7 @@ chrome.storage.sync.get(["globalTheme"], function ({ globalTheme = false }) {
   chrome.permissions.onAdded?.addListener(updateGrantedPermissions);
   chrome.permissions.onRemoved?.addListener(updateGrantedPermissions);
 
-  const promisify =
-    (callbackFn) =>
-    (...args) =>
-      new Promise((resolve) => callbackFn(...args, resolve));
+  const promisify = (callbackFn) => (...args) => new Promise((resolve) => callbackFn(...args, resolve));
 
   let handleConfirmClicked = null;
 
@@ -460,6 +457,7 @@ chrome.storage.sync.get(["globalTheme"], function ({ globalTheme = false }) {
         // Addon is disabled
         if (manifest.tags.includes("recommended")) manifest._groups.push("recommended");
         else if (manifest.tags.includes("beta") || manifest.tags.includes("danger")) manifest._groups.push("beta");
+        else if (manifest.tags.includes("featured")) manifest._groups.push("featured");
         else manifest._groups.push("others");
       }
 
