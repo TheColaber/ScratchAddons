@@ -90,15 +90,21 @@ h1 {
   flex-direction: column;
 }
 
+.clickeable-area .switch,
+.grid .switch {
+  display: none;
+}
+
+.grid .clickeable-area .switch {
+  display: block;
+}
+
 .grid .addon-list {
   display: grid;
-  grid-template-columns: repeat(3, 33%);
-  /* grid-column-gap: 3.33%; */
-  /* grid-row-gap: 60px; */
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
 .grid .addon-body {
-  width: 360px;
   height: 260px;
 }
 
@@ -108,6 +114,10 @@ h1 {
 
 .grid .addon-name {
   flex: 1;
+}
+
+.grid .addon-description {
+  width: 100%;
 }
 
 .grid .clickeable-area {
