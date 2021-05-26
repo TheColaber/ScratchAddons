@@ -34,7 +34,7 @@
       "default": false
     }
   ],
-  "tags": ["editor", "codeEditor", "recommended"],
+  "tags": ["editor", "codeEditor", "featured"],
   "enabledByDefault": false,
   "l10n": true
 }

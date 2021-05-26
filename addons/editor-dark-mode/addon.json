@@ -342,7 +342,7 @@
       }
     }
   ],
-  "tags": ["editor", "theme", "recommended"],
+  "tags": ["editor", "theme", "featured"],
   "enabledByDefault": false,
   "l10n": true
 }
