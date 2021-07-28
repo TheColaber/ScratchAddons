@@ -1,0 +1,16 @@
+{
+  "name": "Clear backpack items",
+  "description": "Clear all items in backpack",
+  "credits": [
+    {
+      "name": "TheColaber"
+    }
+  ],
+  "tags": ["editor", "dangerous"],
+  "userscripts": [
+    {
+      "matches": ["projects"],
+      "url": "userscript.js"
+    }
+  ]
+}
