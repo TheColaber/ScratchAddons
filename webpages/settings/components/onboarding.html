@@ -1,0 +1,94 @@
+<template>
+  <div class="onboarding" v-if="onboardingPage === 1">
+    <img src="../../images/icon.svg" class="onboarding-logo" alt="Logo" />
+    <span class="onboarding-title">Welcome to a new Scratch.</span>
+    <span class="onboarding-desc">
+      With over 100 customizable addons, your Scratch experience will never be the same.
+    </span>
+    <button class="large-button" @click="nextPage">Get Started!</button>
+  </div>
+  <div class="onboarding" v-if="onboardingPage === 2">
+    <span class="onboarding-title">Pick a theme for Scratch</span>
+    <span class="onboarding-desc">
+      This will affect both the scratch website and the scratch editor. You can make more advanced changes later.
+    </span>
+    <div class="onboarding-select-container">
+      <div class="onboarding-select" :class="{ selected: !scratchDark }" @click="scratchDark = false">
+        <img src="../../images/settings/light.svg" />
+        <span>Light</span>
+      </div>
+      <div
+        class="onboarding-select"
+        :class="{ selected: scratchDark }"
+        @click="scratchDark = true"
+        style="background: black; color: white"
+      >
+        <img src="../../images/settings/dark.svg" />
+        <span>Dark</span>
+      </div>
+    </div>
+    <button class="large-button" @click="nextPage">Next</button>
+  </div>
+</template>
+
+<style>
+  .onboarding {
+    position: fixed;
+    background: var(--page-background);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+  }
+
+  .onboarding-logo {
+    height: 200px;
+    margin-bottom: 30px;
+  }
+
+  .onboarding-title {
+    font-size: 24px;
+  }
+
+  .onboarding-desc {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+
+  .onboarding-select-container {
+    display: flex;
+  }
+
+  .onboarding-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    color: black;
+    margin: 0px 10px;
+    border: solid 2px transparent;
+  }
+
+  .onboarding-select:hover {
+    border: solid 2px var(--brand-orange);
+  }
+
+  .onboarding-select.selected {
+    border-color: var(--brand-orange);
+  }
+
+  .onboarding-select img {
+    height: 120px;
+    width: 138px;
+  }
+
+  .onboarding-select span {
+    padding: 8px 0px;
+    font-size: 14px;
+  }
+</style>

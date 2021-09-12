@@ -73,6 +73,7 @@ export default {
     "webpages/settings/components/addon-group-header",
     "webpages/settings/components/addon-body",
     "webpages/settings/components/category-selector",
+    "webpages/settings/components/onboarding",
   ],
   data() {
     const settingsContext = this;
