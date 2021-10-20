@@ -2,16 +2,11 @@ export default {
   data() {
     return {
       onboardingPage: 1,
-      scratchDark: false,
     };
   },
 
   methods: {
     nextPage() {
-      if (this.onboardingPage === 2) {
-        this.enableAddon("dark-www", this.scratchDark);
-        this.enableAddon("editor-dark-mode", this.scratchDark);
-      }
       this.onboardingPage++;
     },
 
