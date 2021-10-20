@@ -5,6 +5,7 @@
 .navbar {
   height: 60px;
   background: var(--brand-orange);
+  color: var(--white-text);
   display: flex;
   align-items: center;
   padding: 0 14px;
@@ -36,8 +37,8 @@ h1 {
   width: 100%;
   align-items: stretch;
   background: var(--page-background);
-  font-family: "Sora", sans-serif;
   color: var(--content-text);
+  font-family: "Sora", sans-serif;
   font-size: 12px;
 }
 
@@ -120,6 +121,9 @@ h1 {
   outline: none;
   border-color: var(--brand-orange);
   box-shadow: var(--input-focus-shadow);
+}
+.large-button > * {
+  vertical-align: middle;
 }
 
 .clear-button {

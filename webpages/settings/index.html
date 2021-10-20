@@ -81,6 +81,10 @@
     <link rel="modulepreload" href="components/addon-body.js" />
     <link rel="preload" href="components/category-selector.html" as="fetch" crossorigin />
     <link rel="modulepreload" href="components/category-selector.js" />
+    <link rel="preload" href="components/previews/editor-dark-mode.html" as="fetch" crossorigin />
+    <link rel="modulepreload" href="components/previews/editor-dark-mode.js" />
+    <link rel="preload" href="components/previews/palette.html" as="fetch" crossorigin />
+    <link rel="modulepreload" href="components/previews/palette.js" />
 
     <style>
       @import url("../styles/colors.css");
@@ -91,8 +95,6 @@
       body {
         margin: 0px;
         height: 100vh;
-        color: var(--white-text);
-        font-family: "Sora", sans-serif;
       }
     </style>
 
@@ -101,7 +103,6 @@
 
     <link href="../../libraries/thirdparty/Sora.css" rel="stylesheet" />
     <script src="../../libraries/thirdparty/vue.js" defer></script>
-    <script src="../../libraries/thirdparty/color-picker.js" type="module"></script>
     <script src="index.js" type="module"></script>
   </head>
   <body>

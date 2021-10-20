@@ -1,10 +1,17 @@
 export default {
   props: ["addon", "groupId", "groupExpanded", "visible"],
-  components: ["webpages/settings/components/addon-setting", "webpages/settings/components/addon-tag"],
+  components: [
+    "webpages/settings/components/addon-setting",
+    "webpages/settings/components/addon-tag",
+    "webpages/settings/components/previews/editor-dark-mode",
+    "webpages/settings/components/previews/palette",
+  ],
   data() {
     return {
       expanded: this.defaultExpanded,
       everExpanded: this.defaultExpanded,
+      hoveredSettingId: null,
+      highlightedSettingId: null,
     };
   },
   computed: {
@@ -103,6 +110,9 @@ export default {
     },
     msg(...params) {
       return this.$settingsContext.msg(...params);
+    },
+    highlightSetting(id) {
+      this.highlightedSettingId = id;
     },
   },
   watch: {

@@ -3,6 +3,7 @@ try {
 } catch {
   throw "Scratch Addons: not first party iframe";
 }
+if (document.documentElement instanceof SVGElement) throw "Top-level SVG document (this can be ignored)";
 
 const _realConsole = window.console;
 const consoleOutput = (logAuthor = "[cs]") => {
@@ -476,7 +477,7 @@ const showBanner = () => {
     line-height: 1em;`,
   });
   const notifImageLink = Object.assign(document.createElement("a"), {
-    href: "https://www.youtube.com/watch?v=I8zZPzVlD_I",
+    href: "https://www.youtube.com/watch?v=QnvgB5ILZCg",
     target: "_blank",
     rel: "noopener",
     referrerPolicy: "strict-origin-when-cross-origin",
@@ -514,7 +515,7 @@ const showBanner = () => {
   });
   const notifInnerText1 = Object.assign(document.createElement("span"), {
     style: NOTIF_TEXT_STYLE,
-    innerHTML: escapeHTML(chrome.i18n.getMessage("extensionUpdateInfo1_v1_19", DOLLARS)).replace(
+    innerHTML: escapeHTML(chrome.i18n.getMessage("extensionUpdateInfo1_v1_21", DOLLARS)).replace(
       /\$(\d+)/g,
       (_, i) =>
         [
@@ -533,7 +534,7 @@ const showBanner = () => {
   });
   const notifInnerText2 = Object.assign(document.createElement("span"), {
     style: NOTIF_TEXT_STYLE,
-    textContent: chrome.i18n.getMessage("extensionUpdateInfo2_v1_19"),
+    textContent: chrome.i18n.getMessage("extensionUpdateInfo2_v1_21"),
   });
   const notifFooter = Object.assign(document.createElement("span"), {
     style: NOTIF_TEXT_STYLE,
