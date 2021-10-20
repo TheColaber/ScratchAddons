@@ -1,42 +1,21 @@
 <template>
-  <div class="onboarding" v-if="onboardingPage === 1">
-    <img src="../../images/icon.svg" class="onboarding-logo" alt="Logo" />
-    <span class="onboarding-title">Welcome to a new Scratch.</span>
-    <span class="onboarding-desc">
-      With over 100 customizable addons,
-      <br />
-      your Scratch experience will never be the same.
-    </span>
-    <button class="orange-button" @click="nextPage">Get Started!</button>
-  </div>
-  <div class="onboarding" v-if="onboardingPage === 2">
-    <span class="onboarding-title">Pick a theme</span>
-    <span class="onboarding-desc">
-      This will affect the theme of the settings page,
-      <br />
-      popup, and other pages within the extension.
-    </span>
-    <div class="onboarding-select-container">
+  <div class="onboarding" v-if="data[page]">
+    <img src="../../images/icon.svg" class="onboarding-logo" v-if="data[page].showIcon" alt="Logo" />
+    <span class="onboarding-title">{{ data[page].title }}</span>
+    <span class="onboarding-desc">{{{ data[page].desc }}}</span>
+    <div class="onboarding-select-container" v-if="data[page].select">
       <div
         class="onboarding-select"
-        :class="{ selected: $settingsContext.theme }"
-        @click="$settingsContext.setTheme(true)"
+        v-for="option of data[page].select"
+        :class="{ selected: option.selected(), dark: option.dark }"
+        @click="option.click()"
       >
-        <img src="../../images/settings/light.svg" />
-        <span>Light</span>
-      </div>
-      <div
-        class="onboarding-select"
-        :class="{ selected: !$settingsContext.theme }"
-        @click="$settingsContext.setTheme(false)"
-        style="background: black; color: white"
-      >
-        <img src="../../images/settings/dark.svg" />
-        <span>Dark</span>
+        <img :src="option.img" />
+        <span>{{ option.title }}</span>
       </div>
     </div>
-    <button class="orange-button" @click="nextPage">Next</button>
-    <span class="button-note">You can always change this later.</span>
+    <button class="orange-button" @click="nextPage">{{ data[page].button }}</button>
+    <span class="button-note" v-if="data[page].buttonNote">{{ data[page].buttonNote }}</span>
   </div>
 </template>
 
@@ -85,6 +64,11 @@
     color: black;
     margin: 0px 20px;
     border: solid 3px transparent;
+  }
+
+  .onboarding-select.dark {
+    background: black;
+    color: white;
   }
 
   .onboarding-select:hover {
