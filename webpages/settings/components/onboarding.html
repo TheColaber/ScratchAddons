@@ -8,6 +8,7 @@
         class="onboarding-select"
         v-for="option of data[page].select"
         :class="{ selected: option.selected(), dark: option.dark }"
+        :title="option.tooltip"
         @click="option.click()"
       >
         <img :src="option.img" />
@@ -72,7 +73,7 @@
   }
 
   .onboarding-select:hover {
-    border: solid 3px var(--brand-orange);
+    /* border: solid 3px var(--brand-orange); */
   }
 
   .onboarding-select.selected {

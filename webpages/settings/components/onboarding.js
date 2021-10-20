@@ -2,7 +2,12 @@ export default {
   data() {
     return {
       page: 0,
-      data: [
+    };
+  },
+
+  computed: {
+    data() {
+      return [
         {
           showIcon: true,
           title: "Welcome to a new Scratch.",
@@ -34,8 +39,23 @@ export default {
           button: "Next",
           buttonNote: "You can always change this later.",
         },
-      ],
-    };
+        {
+          title: "Customize the Scratch Website",
+          desc: `You can enable more addons
+          <br />
+          and make advanced changeds in the settings page.`,
+          select: [
+            this.addonSelectOption("scratchr2"),
+            this.addonSelectOption("studio-tools"),
+            this.addonSelectOption("full-signature"),
+            this.addonSelectOption("better-featured-project"),
+            this.addonSelectOption("exact-count"),
+          ],
+          button: "Next",
+          buttonNote: "You can always change this later.",
+        },
+      ];
+    },
   },
 
   methods: {
@@ -43,16 +63,23 @@ export default {
       this.page++;
     },
 
-    enableAddon(addonId, enabled) {
-      chrome.runtime.sendMessage({ changeEnabledState: { addonId, newState: enabled } });
-      const addon = this.getManifest(addonId);
-      addon._wasEverEnabled = enabled;
-      addon._enabled = enabled;
+    addonSelectOption(id) {
+      if (!this.$settingsContext.loaded) return;
+      const manifest = this.$settingsContext.manifestsById[id];
+      return {
+        title: manifest.name,
+        tooltip: manifest.description,
+        img: `https://scratchaddons.com/assets/img/addons/${id}.png`,
+        selected: () => manifest._enabled,
+        click: () => this.enableAddon(id, !manifest._enabled),
+      };
     },
 
-    getManifest(addonId) {
-      const { manifests } = this.$settingsContext;
-      return manifests.find(({ _addonId }) => _addonId === addonId);
+    enableAddon(addonId, enabled) {
+      chrome.runtime.sendMessage({ changeEnabledState: { addonId, newState: enabled } });
+      const addon = this.$settingsContext.manifestsById[addonId];
+      addon._wasEverEnabled = enabled;
+      addon._enabled = enabled;
     },
   },
 };
