@@ -9,7 +9,7 @@ export default {
     data() {
       return [
         {
-          showIcon: true,
+          icon: "../../images/icon.svg",
           title: "Welcome to a new Scratch.",
           desc: `With over 100 customizable addons,
           <br />
@@ -68,6 +68,44 @@ export default {
           ],
           button: "Next",
           buttonNote: "You can always change this later.",
+        },
+        {
+          title: "Customize the Editor",
+          desc: `You can enable more addons
+          <br />
+          and make advanced changeds in the settings page.`,
+          select: [
+            this.addonSelectOption("editor-devtools"),
+            this.addonSelectOption("editor-searchable-dropdowns"),
+            this.addonSelectOption("block-switching"),
+            this.addonSelectOption("folders"),
+            this.addonSelectOption("cat-blocks"),
+            this.addonSelectOption("clones"),
+          ],
+          button: "Next",
+          buttonNote: "You can always change this later.",
+        },
+        {
+          title: "Customize the Popup",
+          desc: `These features let you manage Scratch
+          <br />
+          from the extension icon.`,
+          select: [
+            this.addonSelectOption("scratch-messaging"),
+            this.addonSelectOption("msg-count-badge"),
+            this.addonSelectOption("scratch-notifier"),
+            this.addonSelectOption("cloud-games"),
+          ],
+          button: "Next",
+          buttonNote: "You can always change this later.",
+        },
+        {
+          icon: "../../../images/settings/party.svg",
+          title: "You're all set!",
+          desc: `Go ahead and try out your new addons,
+          <br />
+          or browse even more options in the settings.`,
+          button: "Open settings",
         },
       ];
     },

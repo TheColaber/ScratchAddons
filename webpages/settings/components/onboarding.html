@@ -1,6 +1,6 @@
 <template>
   <div class="onboarding" v-if="data[page]">
-    <img src="../../images/icon.svg" class="onboarding-logo" v-if="data[page].showIcon" alt="Logo" />
+    <img :src="data[page].icon" class="onboarding-logo" v-if="data[page].icon" alt="Logo" />
     <span class="onboarding-title">{{ data[page].title }}</span>
     <span class="onboarding-desc">{{{ data[page].desc }}}</span>
     <div class="onboarding-select-container" v-if="data[page].select">
