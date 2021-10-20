@@ -13,6 +13,7 @@ const promisify =
   (...args) =>
     new Promise((resolve) => callbackFn(...args, resolve));
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+const syncGet = promisify(chrome.storage.sync.get.bind(chrome.storage.sync));
 
 let version = chrome.runtime.getManifest().version;
 let versionName = chrome.runtime.getManifest().version_name;
@@ -35,6 +36,8 @@ await new Promise((resolve) => {
     resolve();
   });
 });
+
+const { onboardingShown } = await syncGet(["onboardingShown"]);
 
 let iframeData;
 if (isInPopup) {
@@ -128,6 +131,7 @@ export default {
           changelog: `https://scratchaddons.com/${localeSlash}changelog?${utm}`,
         };
       })(),
+      showOnboarding: !onboardingShown,
     };
   },
   computed: {
@@ -622,7 +626,6 @@ Vue.directive("click-outside", {
 let handleConfirmClicked = null;
 
 const serializeSettings = async () => {
-  const syncGet = promisify(chrome.storage.sync.get.bind(chrome.storage.sync));
   const storedSettings = await syncGet(["globalTheme", "addonSettings", "addonsEnabled"]);
   const serialized = {
     core: {
@@ -642,7 +645,6 @@ const serializeSettings = async () => {
 
 const deserializeSettings = async (str, manifests, confirmElem) => {
   const obj = JSON.parse(str);
-  const syncGet = promisify(chrome.storage.sync.get.bind(chrome.storage.sync));
   const syncSet = promisify(chrome.storage.sync.set.bind(chrome.storage.sync));
   const { addonSettings, addonsEnabled } = await syncGet(["addonSettings", "addonsEnabled"]);
   const pendingPermissions = {};

@@ -114,6 +114,9 @@ export default {
   methods: {
     nextPage() {
       this.page++;
+      if (this.page === this.data.length) {
+        chrome.storage.sync.set({ onboardingShown: true });
+      }
     },
 
     addonSelectOption(id) {

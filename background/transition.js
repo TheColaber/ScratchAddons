@@ -6,14 +6,10 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   const [major, minor, _] = currentVersion.split(".");
   if (details.previousVersion && details.previousVersion.startsWith("0")) {
     chrome.tabs.create({ url: `https://scratchaddons.com/${localeSlash}scratch-messaging-transition/?${utm}` });
-  } else if (
-    details.reason === "install" &&
-    chrome.runtime.getManifest().version_name.includes("-prerelease") === false
-  ) {
-    chrome.tabs.create({ url: `https://scratchaddons.com/${localeSlash}welcome/?${utm}` });
-  }
-
-  if (details.reason === "install") {
+  } else if (details.reason === "install") {
+    chrome.storage.sync.set({ onboardingShown: false }, () => {
+      chrome.runtime.openOptionsPage();
+    });
     chrome.storage.local.set({
       bannerSettings: { lastShown: `${major}.${minor}` },
     });
