@@ -54,6 +54,21 @@ export default {
           button: "Next",
           buttonNote: "You can always change this later.",
         },
+        {
+          title: "Customize the Project Player",
+          desc: `You can enable more addons
+          <br />
+          and make advanced changeds in the settings page.`,
+          select: [
+            this.addonSelectOption("pause"),
+            this.addonSelectOption("progress-bar"),
+            this.addonSelectOption("60fps"),
+            this.addonSelectOption("mute-project"),
+            this.addonSelectOption("gamepad"),
+          ],
+          button: "Next",
+          buttonNote: "You can always change this later.",
+        },
       ];
     },
   },
