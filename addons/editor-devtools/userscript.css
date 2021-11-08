@@ -2,11 +2,11 @@
   display: flex;
   white-space: nowrap;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  width: 100%;
 }
 
 .s3devLabel {
   display: flex;
-  padding-right: 2em;
 }
 
 [dir="rtl"] .s3devLabel {
@@ -40,6 +40,10 @@
   opacity: 0.7;
 }
 
+[class^="react-tabs_react-tabs__tab-list"][class*="gui_tab-list_87TYM"] {
+  width: 100%;
+}
+
 /* Wrapper around find button and drop down */
 .s3devWrap {
   overflow: visible;
@@ -53,10 +57,10 @@
 
 /* Find Input Box */
 input.s3devInp {
-  min-width: 100%;
   box-sizing: border-box !important;
   /* !important required for extension, because CSS injection method (and hence order) differs from addon */
   height: 1.5rem;
+  width: 100%;
 
   /* Change Scratch default styles */
   border-radius: 0.25rem;
@@ -78,10 +82,8 @@ input.s3devInp:focus {
 div.s3devDDOut {
   z-index: 100;
   left: 0;
-  width: 16em;
+  width: min(100%, 16em);
   position: relative;
-  /*padding: 2.2em 0 0;*/
-  /*background-color: white;*/
   padding: 4px;
 }
 
