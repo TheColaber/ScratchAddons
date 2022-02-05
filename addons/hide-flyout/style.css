@@ -1,38 +1,5 @@
-.blocklyFlyout,
-.blocklyFlyoutScrollbar,
-.sa-lock-image {
-  transition-property: transform;
-}
-
-.blocklyFlyout.sa-flyoutClose {
-  transform: translateX(-200px) !important;
-}
-
-.blocklyFlyoutScrollbar.sa-flyoutClose {
-  transform: translateX(35px) !important;
-}
-
-.sa-lock-image.sa-flyoutClose {
-  transform: translateX(-260px);
-}
-
-.sa-flyout-placeHolder {
+.blocklyLockVertical {
   position: absolute;
-  left: 61px;
-  top: 44px;
-  height: 100%;
-  width: 251px;
-}
-
-.sa-lock-image {
-  position: absolute;
-  z-index: 20;
-  width: 20px;
-  cursor: pointer;
-  top: 46px;
-  left: 280px;
-}
-
-.injectionDiv {
-  overflow: hidden !important;
+  outline: none;
+  z-index: 30;
 }

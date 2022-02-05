@@ -43,6 +43,8 @@ export default async function ({ addon, msg, global, console }) {
     this.svgGroup_.setAttribute("height", this.height_);
     var transform = "translate(" + x + "px," + y + "px)";
     Blockly.utils.setCssTransform(this.svgGroup_, transform);
+    this.hidePosition = x;
+    this.hideTranslate = x;
 
     // Update the scrollbar (if one exists).
     if (this.scrollbar_) {
@@ -53,12 +55,62 @@ export default async function ({ addon, msg, global, console }) {
       );
       this.scrollbar_.resize();
     }
+    if (this.lock_) {
+      if (this.parentToolbox_) {
+        var toolboxWidth = this.parentToolbox_.getWidth();
+        var categoryWidth = toolboxWidth - this.width_;
+        var x = this.toolboxPosition_ == Blockly.TOOLBOX_AT_RIGHT ? targetWorkspaceMetrics.viewWidth : categoryWidth;
+      } else {
+        var x = this.toolboxPosition_ == Blockly.TOOLBOX_AT_RIGHT ? targetWorkspaceMetrics.viewWidth - this.width_ : 0;
+      }
+      let hostMetrics = this.workspace_.getMetrics();
+
+      x += hostMetrics.absoluteLeft + 0.5;
+      if (!this.workspace_.RTL) {
+        x += hostMetrics.viewWidth - Blockly.Scrollbar.scrollbarThickness - 1 - 24;
+      } else {
+        x += 12;
+      }
+      // var y = hostMetrics.absoluteTop + 0.5;
+
+      this.lock_.position(
+        x + (this.toolboxPosition_ === Blockly.TOOLBOX_AT_RIGHT ? 0 : this.width_ - this.getWidth()),
+        y
+      );
+    }
 
     // Set CSS variables for the userstyle.
     const container = this.svgGroup_.closest("[class*='gui_tab-panel_']");
     container.style.setProperty("--sa-add-extension-button-y", `${y - 33}px`);
     container.parentElement.style.setProperty("--sa-flyout-y", `${y}px`);
   };
+
+  const _FlyoutStepHideAnimation = Blockly.Flyout.prototype.stepHideAnimation;
+  Blockly.Flyout.prototype.stepHideAnimation = function () {
+    _FlyoutStepHideAnimation.call(this);
+    if (!this.svgGroup_ || addon.self.disabled) {
+      return;
+    }
+    Blockly.utils.setCssTransform(
+      this.svgGroup_,
+      "translate(" + this.hideTranslate + "px," + this.parentToolbox_.HtmlDiv.offsetHeight + "px)"
+    );
+  };
+
+  // Blockly.Flyout.prototype.getCategoryPlaceHolderPos = function () {
+  //   let { left, top, width, height } = this.placeholderPos;
+  //   var toolboxWidth = this.parentToolbox_.getWidth();
+  //   var categoryWidth = toolboxWidth - this.width_;
+  //   top
+  //   if (this.RTL) {
+  //     left += this.hideTranslate - this.hidePosition;
+  //     width += categoryWidth + this.hidePosition - this.hideTranslate;
+  //   } else {
+  //     left -= categoryWidth;
+  //     width += this.hideTranslate;
+  //   }
+  //   return { left, top, width, height };
+  // };
 
   // https://github.com/LLK/scratch-blocks/blob/893c7e7ad5bfb416eaed75d9a1c93bdce84e36ab/core/flyout_base.js#L370
   const _VerticalFlyoutGetWidth = Blockly.VerticalFlyout.prototype.getWidth;

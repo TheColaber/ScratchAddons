@@ -17,5 +17,6 @@ export default async function ({ addon, global, console }) {
     rect.width -= 1000000000;
     return rect;
   };
+  ScratchBlocks.getMainWorkspace().getFlyout().position();
   if (addon.self.enabledLate) resize();
 }
