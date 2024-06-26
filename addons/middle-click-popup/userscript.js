@@ -34,12 +34,12 @@ export default async function ({ addon, msg, console }) {
       this.listeners_ = [];
       this.buttons_ = [];
 
-      this.positionXY = { x: 0, y: 0 }
+      this.positionXY = { x: 0, y: 0 };
 
       this.createDom();
       this.init(workspace);
 
-      this.xmlList =  Blockly.Options.parseToolboxTree(`
+      this.xmlList = Blockly.Options.parseToolboxTree(`
         <xml style="display: none">
           <block type="motion_movesteps">
               <value name="STEPS">
@@ -112,7 +112,11 @@ export default async function ({ addon, msg, console }) {
     }
 
     createDom() {
-      this.svgGroup_ = Blockly.utils.createSvgElement("svg", { class: "middle-click-dropdown", style: "display: none;" }, document.querySelector(".injectionDiv"));
+      this.svgGroup_ = Blockly.utils.createSvgElement(
+        "svg",
+        { class: "middle-click-dropdown", style: "display: none;" },
+        document.querySelector(".injectionDiv")
+      );
       this.svgBackground_ = Blockly.utils.createSvgElement(
         "path",
         { class: "blocklyFlyoutBackground" },
@@ -364,7 +368,7 @@ export default async function ({ addon, msg, console }) {
     }
 
     show(x, y) {
-      this.positionXY = { x, y }
+      this.positionXY = { x, y };
 
       this.workspace_.setResizesEnabled(false);
       this.hide();
@@ -797,11 +801,11 @@ export default async function ({ addon, msg, console }) {
     if (e.ctrlKey && e.key == " ") {
       popup.show(mouse.x, mouse.y);
     }
-  })
+  });
 
   document.addEventListener("mousemove", (e) => {
-    mouse = { x: e.clientX, y: e.clientY }
-  })
+    mouse = { x: e.clientX, y: e.clientY };
+  });
   // const oldKeyDown = Blockly.onKeyDown_;
   // Blockly.onKeyDown_ = function(e) {
 
