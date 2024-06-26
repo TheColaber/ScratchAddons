@@ -575,7 +575,7 @@ export default async function ({ addon, msg, console }) {
       this.workspace_.createPotentialVariableMap();
 
       this.workspace_.scale = targetWorkspace.scale;
-}
+    }
 
     createDom() {
       this.container_ = document.createElement("div");
@@ -696,7 +696,7 @@ export default async function ({ addon, msg, console }) {
 
     setRecyclingEnabled(recycle) {
       this.recyclingEnabled_ = recycle;
-    };
+    }
 
     isScrollable() {
       return this.scrollbar_ ? this.scrollbar_.isVisible() : false;
@@ -780,10 +780,10 @@ export default async function ({ addon, msg, console }) {
       };
 
       // Check if any of the buttons/labels are outside the blocks bounding box.
-      for (var i = 0; i < this.buttons_.length; i ++) {
+      for (var i = 0; i < this.buttons_.length; i++) {
         var button = this.buttons_[i];
         var buttonPosition = button.getPosition();
-        if (buttonPosition.x  < bounds.xMin) {
+        if (buttonPosition.x < bounds.xMin) {
           bounds.xMin = buttonPosition.x;
         }
         if (buttonPosition.y < bounds.yMin) {
@@ -791,7 +791,7 @@ export default async function ({ addon, msg, console }) {
         }
         // Button extends past the bounding box to the right.
         if (buttonPosition.x + button.width > bounds.xMax) {
-          bounds.xMax = buttonPosition.x  + button.width;
+          bounds.xMax = buttonPosition.x + button.width;
         }
 
         // Button extends past the bounding box on the bottom
@@ -1062,7 +1062,7 @@ export default async function ({ addon, msg, console }) {
       }
       this.backgroundButtons_.length = 0;
 
-      for (var i = 0, button; button = this.buttons_[i]; i++) {
+      for (var i = 0, button; (button = this.buttons_[i]); i++) {
         button.dispose();
       }
       this.buttons_.length = 0;
@@ -1141,7 +1141,7 @@ export default async function ({ addon, msg, console }) {
       var xy = block.getRelativeToSurfaceXY();
       block.moveBy(-xy.x, -xy.y);
       this.recycleBlocks_.push(block);
-    };
+    }
 
     placeNewBlock_(oldBlock) {
       var targetWorkspace = this.targetWorkspace_;
@@ -1205,11 +1205,11 @@ export default async function ({ addon, msg, console }) {
       if (delta) {
         // Firefox's mouse wheel deltas are a tenth that of Chrome/Safari.
         // DeltaMode is 1 for a mouse wheel, but not for a trackpad scroll event
-        if (goog.userAgent.GECKO && (e.deltaMode === 1)) {
+        if (goog.userAgent.GECKO && e.deltaMode === 1) {
           delta *= 10;
         }
         var metrics = this.getMetrics_();
-        var pos = (metrics.viewTop - metrics.contentTop) + delta;
+        var pos = metrics.viewTop - metrics.contentTop + delta;
         var limit = metrics.contentHeight - metrics.viewHeight;
         pos = Math.min(pos, limit);
         pos = Math.max(pos, 0);
@@ -1223,21 +1223,20 @@ export default async function ({ addon, msg, console }) {
       e.preventDefault();
       // Don't propagate mousewheel event (zooming).
       e.stopPropagation();
-    };
+    }
 
     onMouseDown_(e) {
       var gesture = this.targetWorkspace_.getGesture(e);
       if (gesture) {
         gesture.handleFlyoutStart(e, this);
       }
-    };
+    }
 
     stepScrollAnimation() {
       if (!this.scrollTarget) {
         return;
       }
-      var scrollPos = this.horizontalLayout_ ?
-        -this.workspace_.scrollX : -this.workspace_.scrollY;
+      var scrollPos = this.horizontalLayout_ ? -this.workspace_.scrollX : -this.workspace_.scrollY;
       var diff = this.scrollTarget - scrollPos;
       if (Math.abs(diff) < 1) {
         this.scrollbar_.set(this.scrollTarget);
@@ -1248,14 +1247,12 @@ export default async function ({ addon, msg, console }) {
 
       // Polyfilled by goog.dom.animationFrame.polyfill
       requestAnimationFrame(this.stepScrollAnimation.bind(this));
-    };
+    }
 
     getScrollPos() {
-      var pos = this.horizontalLayout_ ?
-        -this.workspace_.scrollX : -this.workspace_.scrollY;
+      var pos = this.horizontalLayout_ ? -this.workspace_.scrollX : -this.workspace_.scrollY;
       return pos / this.workspace_.scale;
-    };
-
+    }
   }
 
   const workspace = Blockly.getMainWorkspace();
