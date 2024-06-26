@@ -33,6 +33,7 @@ export default async function ({ addon, msg, console }) {
       this.backgroundButtons_ = [];
       this.listeners_ = [];
       this.buttons_ = [];
+      this.autoClose = true;
 
       this.positionXY = { x: 0, y: 0 };
 
@@ -87,7 +88,12 @@ export default async function ({ addon, msg, console }) {
       this.targetWorkspace_ = targetWorkspace;
       this.workspace_.targetWorkspace = targetWorkspace;
 
-      this.scrollbar_ = new Blockly.Scrollbar(this.workspace_, false, false, "blocklyFlyoutScrollbar");
+      this.scrollbar_ = new Blockly.Scrollbar(
+        this.workspace_,
+        false,
+        false,
+        "blocklyFlyoutScrollbar  middle-click-scrollbar"
+      );
 
       this.position();
 
@@ -127,10 +133,16 @@ export default async function ({ addon, msg, console }) {
       const styles = document.createElement("style");
       styles.textContent = `
       .middle-click-dropdown {
-        position: absolute;
+        position: fixed;
         border: 1px solid #383838;
         border-radius: 5px;
         z-index: 20;
+      }
+      .middle-click-scrollbar {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        z-index: 30;
       }`;
       document.body.append(styles);
 
@@ -803,12 +815,18 @@ export default async function ({ addon, msg, console }) {
     }
   });
 
+  const oldBindMouseEvents = Blockly.Gesture.prototype.bindMouseEvents;
+  Blockly.Gesture.prototype.bindMouseEvents = function (e) {
+    oldBindMouseEvents.call(this, e);
+    if (e.button === 1) {
+      popup.show(e.clientX, e.clientY);
+    } else {
+      if (this.flyout_ === popup) return;
+      popup.hide();
+    }
+  };
+
   document.addEventListener("mousemove", (e) => {
     mouse = { x: e.clientX, y: e.clientY };
   });
-  // const oldKeyDown = Blockly.onKeyDown_;
-  // Blockly.onKeyDown_ = function(e) {
-
-  //   oldKeyDown.call(this, e);
-  // }
 }
