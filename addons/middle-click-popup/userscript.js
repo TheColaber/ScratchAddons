@@ -1187,16 +1187,15 @@ export default async function ({ addon, msg, console }) {
       // of the injection div.
       var oldBlockOffsetPixels = {
         x: flyoutOffsetPixels.x + oldBlockPosPixels.x,
-        y: flyoutOffsetPixels.y + oldBlockPosPixels.y
-      }
-
+        y: flyoutOffsetPixels.y + oldBlockPosPixels.y,
+      };
 
       // The position of the old block in pixels relative to the origin of the
       // main workspace.
       var finalOffsetPixels = {
         x: oldBlockOffsetPixels.x - mainOffsetPixels.x,
-        y: oldBlockOffsetPixels.y - mainOffsetPixels.y
-      }
+        y: oldBlockOffsetPixels.y - mainOffsetPixels.y,
+      };
 
       // The position of the old block in main workspace coordinates.
       var finalOffsetMainWs = finalOffsetPixels.scale(1 / targetWorkspace.scale);
