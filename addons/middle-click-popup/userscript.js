@@ -583,10 +583,10 @@ export default async function ({ addon, msg, console }) {
       this.container_.style.top = "300px";
       this.container_.style.left = "300px";
       this.container_.style.zIndex = "9999";
-      this.svgGroup_ = Blockly.utils.createSvgElement("svg", { class: "test" }, this.container_);
+      this.svgGroup_ = Blockly.utils.createSvgElement("svg", { class: "middle-click-dropdown" }, this.container_);
       this.svgBackground_ = Blockly.utils.createSvgElement(
         "path",
-        { class: "middle-click-background" },
+        { class: "blocklyFlyoutBackground" },
         this.svgGroup_
       );
       this.svgGroup_.appendChild(this.workspace_.createDom());
@@ -594,8 +594,10 @@ export default async function ({ addon, msg, console }) {
 
       const styles = document.createElement("style");
       styles.textContent = `
-      .middle-click-background {
-        fill: #fff;
+      .middle-click-dropdown {
+        position: absolute;
+        border: 1px solid #383838;
+        border-radius: 5px;
       }`;
       document.body.append(styles);
 
@@ -1183,11 +1185,18 @@ export default async function ({ addon, msg, console }) {
 
       // The position of the old block in pixels relative to the upper left corner
       // of the injection div.
-      var oldBlockOffsetPixels = goog.math.Coordinate.sum(flyoutOffsetPixels, oldBlockPosPixels);
+      var oldBlockOffsetPixels = {
+        x: flyoutOffsetPixels.x + oldBlockPosPixels.x,
+        y: flyoutOffsetPixels.y + oldBlockPosPixels.y
+      }
+
 
       // The position of the old block in pixels relative to the origin of the
       // main workspace.
-      var finalOffsetPixels = goog.math.Coordinate.difference(oldBlockOffsetPixels, mainOffsetPixels);
+      var finalOffsetPixels = {
+        x: oldBlockOffsetPixels.x - mainOffsetPixels.x,
+        y: oldBlockOffsetPixels.y - mainOffsetPixels.y
+      }
 
       // The position of the old block in main workspace coordinates.
       var finalOffsetMainWs = finalOffsetPixels.scale(1 / targetWorkspace.scale);
@@ -1205,9 +1214,10 @@ export default async function ({ addon, msg, console }) {
       if (delta) {
         // Firefox's mouse wheel deltas are a tenth that of Chrome/Safari.
         // DeltaMode is 1 for a mouse wheel, but not for a trackpad scroll event
-        if (goog.userAgent.GECKO && (e.deltaMode === 1)) {
-          delta *= 10;
-        }
+        // TODO
+        // if (goog.userAgent.GECKO && (e.deltaMode === 1)) {
+        //   delta *= 10;
+        // }
         var metrics = this.getMetrics_();
         var pos = (metrics.viewTop - metrics.contentTop) + delta;
         var limit = metrics.contentHeight - metrics.viewHeight;
