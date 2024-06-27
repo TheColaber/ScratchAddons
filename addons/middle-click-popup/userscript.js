@@ -39,49 +39,6 @@ export default async function ({ addon, msg, console }) {
 
       this.createDom();
       this.init(workspace);
-
-      this.xmlList = Blockly.Options.parseToolboxTree(`
-        <xml style="display: none">
-          <block type="motion_movesteps">
-              <value name="STEPS">
-                  <shadow type="math_number">
-                      <field name="NUM">10</field>
-                  </shadow>
-              </value>
-          </block>
-          <block type="motion_turnright">
-              <value name="DEGREES">
-                  <shadow type="math_number">
-                      <field name="NUM">15</field>
-                  </shadow>
-              </value>
-          </block>
-          <block type="motion_turnleft">
-              <value name="DEGREES">
-                  <shadow type="math_number">
-                      <field name="NUM">15</field>
-                  </shadow>
-              </value>
-          </block>
-          <block type="motion_goto">
-              <value name="TO">
-                  <shadow type="motion_goto_menu">
-                  </shadow>
-              </value>
-          </block>
-          <block type="motion_gotoxy">
-              <value name="X">
-                  <shadow id="movex" type="math_number">
-                      <field name="NUM">0</field>
-                  </shadow>
-              </value>
-              <value name="Y">
-                  <shadow id="movey" type="math_number">
-                      <field name="NUM">0</field>
-                  </shadow>
-              </value>
-          </block>
-        </xml>`).children;
     }
 
     init(targetWorkspace) {
@@ -381,6 +338,13 @@ export default async function ({ addon, msg, console }) {
 
     show(x, y) {
       this.positionXY = { x, y };
+      const targetFlyout = this.targetWorkspace_.getFlyout();
+      if (!targetFlyout) return;
+      const flyoutWorkspace = targetFlyout.getWorkspace();
+      if (!flyoutWorkspace) return;
+      const flyoutDom = Blockly.Xml.workspaceToDom(flyoutWorkspace)
+      console.log(flyoutDom);
+      this.xmlList = Blockly.Options.parseToolboxTree(flyoutDom).children;
 
       this.workspace_.setResizesEnabled(false);
       this.hide();
