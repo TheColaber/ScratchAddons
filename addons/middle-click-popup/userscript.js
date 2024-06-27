@@ -11,6 +11,7 @@ export default async function ({ addon, msg, console }) {
       this.MARGIN = 12;
       this.GAP_X = Blockly.Flyout.prototype.MARGIN * 3;
       this.GAP_Y = Blockly.Flyout.prototype.MARGIN;
+      this.TOP_MARGIN = 30;
       const workspaceOptions = {
         disabledPatternId: workspace.options.disabledPatternId,
         parentWorkspace: workspace,
@@ -49,7 +50,7 @@ export default async function ({ addon, msg, console }) {
         this.workspace_,
         false,
         false,
-        "blocklyFlyoutScrollbar  middle-click-scrollbar"
+        "blocklyFlyoutScrollbar middle-click-scrollbar"
       );
 
       this.position();
@@ -87,22 +88,6 @@ export default async function ({ addon, msg, console }) {
       );
       this.svgGroup_.appendChild(this.workspace_.createDom());
 
-      const styles = document.createElement("style");
-      styles.textContent = `
-      .middle-click-dropdown {
-        position: fixed;
-        border: 1px solid #383838;
-        border-radius: 5px;
-        z-index: 20;
-      }
-      .middle-click-scrollbar {
-        position: fixed;
-        top: 0px;
-        left: 0px;
-        z-index: 30;
-      }`;
-      document.body.append(styles);
-
       this.defs_ = Blockly.utils.createSvgElement("defs", {}, this.svgGroup_);
       var clipPath = Blockly.utils.createSvgElement("clipPath", { id: "blocklyBlockMenuClipPath" }, this.defs_);
       this.clipRect_ = Blockly.utils.createSvgElement(
@@ -117,6 +102,11 @@ export default async function ({ addon, msg, console }) {
         clipPath
       );
       this.workspace_.svgGroup_.setAttribute("clip-path", "url(#blocklyBlockMenuClipPath)");
+
+      this.input_ = document.createElement("input");
+      this.input_.className = "middle-click-input";
+      this.input_.style.display = "none";
+      document.body.append(this.input_);
     }
 
     position() {
@@ -134,6 +124,11 @@ export default async function ({ addon, msg, console }) {
       this.svgGroup_.setAttribute("width", this.width_);
       this.svgGroup_.setAttribute("height", this.height_);
 
+      this.input_.style.left = this.positionXY.x + this.MARGIN / 2 + "px";
+      this.input_.style.top = this.positionXY.y + this.MARGIN / 2 + "px";
+      this.input_.style.width = this.width_ - this.MARGIN * 2 + "px";
+      this.input_.focus()
+
       if (this.scrollbar_) {
         // Set the scrollbars origin to be the top left of the popup.
         this.scrollbar_.setOrigin(this.positionXY.x, this.positionXY.y);
@@ -143,13 +138,13 @@ export default async function ({ addon, msg, console }) {
     }
 
     setBackgroundPath_(width, height) {
-      var path = ["M " + 0 + ",0"];
+      var path = ["M " + 0 + "," + this.TOP_MARGIN];
       // Top.
       path.push("h", width);
       // Rounded corner.
       path.push("a", this.CORNER_RADIUS, this.CORNER_RADIUS, 0, 0, 1, this.CORNER_RADIUS, this.CORNER_RADIUS);
       // Side closest to workspace.
-      path.push("v", Math.max(0, height - this.CORNER_RADIUS * 2));
+      path.push("v", Math.max(0, height - this.CORNER_RADIUS * 2) - this.TOP_MARGIN);
       // Rounded corner.
       path.push("a", this.CORNER_RADIUS, this.CORNER_RADIUS, 0, 0, 1, -this.CORNER_RADIUS, this.CORNER_RADIUS);
       // Bottom.
@@ -183,6 +178,7 @@ export default async function ({ addon, msg, console }) {
         show = this.isVisible();
       }
       this.svgGroup_.style.display = show ? "block" : "none";
+      this.input_.style.display = show ? "block" : "none";
       // Update the scrollbar's visiblity too since it should mimic the
       // flyout's visibility.
       this.scrollbar_.setContainerVisible(show);
@@ -224,7 +220,7 @@ export default async function ({ addon, msg, console }) {
       var optionBox = this.getContentBoundingBox_();
       var absoluteTop = this.SCROLLBAR_PADDING;
       var absoluteLeft = 0;
-      var viewHeight = this.height_ - 2 * this.SCROLLBAR_PADDING;
+      var viewHeight = this.height_ - 2 * this.SCROLLBAR_PADDING - this.TOP_MARGIN;
       var viewWidth = this.getWidth() - this.SCROLLBAR_PADDING;
       var contentHeight = optionBox.height * this.workspace_.scale;
       this.recordCategoryScrollPositions_();
@@ -244,11 +240,11 @@ export default async function ({ addon, msg, console }) {
         viewWidth: viewWidth,
         contentHeight: contentHeight + bottomPadding,
         contentWidth: optionBox.width * this.workspace_.scale + 2 * this.MARGIN,
-        viewTop: -this.workspace_.scrollY + optionBox.y,
+        viewTop: -this.workspace_.scrollY + optionBox.y + this.TOP_MARGIN,
         viewLeft: -this.workspace_.scrollX,
-        contentTop: optionBox.y,
+        contentTop: optionBox.y + this.TOP_MARGIN,
         contentLeft: optionBox.x,
-        absoluteTop: absoluteTop,
+        absoluteTop: absoluteTop + this.TOP_MARGIN,
         absoluteLeft: absoluteLeft,
       };
       return metrics;
@@ -268,6 +264,8 @@ export default async function ({ addon, msg, console }) {
         this.workspace_.scrollY + metrics.absoluteTop
       );
 
+      this.clipRect_.setAttribute("x", 0);
+      this.clipRect_.setAttribute("y", this.TOP_MARGIN)
       this.clipRect_.setAttribute("height", Math.max(0, metrics.viewHeight) + "px");
       this.clipRect_.setAttribute("width", metrics.viewWidth + "px");
 
@@ -336,24 +334,30 @@ export default async function ({ addon, msg, console }) {
       }
     }
 
-    show(x, y) {
-      this.positionXY = { x, y };
+    setXMLList() {
       const targetFlyout = this.targetWorkspace_.getFlyout();
       if (!targetFlyout) return;
       const flyoutWorkspace = targetFlyout.getWorkspace();
       if (!flyoutWorkspace) return;
       const flyoutDom = Blockly.Xml.workspaceToDom(flyoutWorkspace);
-      console.log(flyoutDom);
-      this.xmlList = Blockly.Options.parseToolboxTree(flyoutDom).children;
+      this.xmlList = [...Blockly.Options.parseToolboxTree(flyoutDom).children];
+    }
+
+    show(x, y) {
+      this.positionXY = { x, y };
 
       this.workspace_.setResizesEnabled(false);
       this.hide();
-      this.clearOldBlocks_();
 
       this.setVisible(true);
+
+      this.clearOldBlocks_();
+
+      this.setXMLList();
+
       // Create the blocks to be shown in this flyout.
-      var contents = [];
-      var gaps = [];
+      this. contents = [];
+      this. gaps = [];
       this.permanentlyDisabled_.length = 0;
       for (var i = 0, xml; (xml = this.xmlList[i]); i++) {
         // Handle dynamic categories, represented by a name instead of a list of XML.
@@ -397,9 +401,9 @@ export default async function ({ addon, msg, console }) {
               // Do not enable these blocks as a result of capacity filtering.
               this.permanentlyDisabled_.push(curBlock);
             }
-            contents.push({ type: "block", block: curBlock });
+            this.contents.push({ type: "block", block: curBlock });
             var gap = parseInt(xml.getAttribute("gap"), 10);
-            gaps.push(isNaN(gap) ? default_gap : gap);
+            this.gaps.push(isNaN(gap) ? default_gap : gap);
           } else if (xml.tagName.toUpperCase() == "SEP") {
             // Change the gap between two blocks.
             // <sep gap="36"></sep>
@@ -409,29 +413,28 @@ export default async function ({ addon, msg, console }) {
             // <block type="math_arithmetic" gap="8"></block>
             var newGap = parseInt(xml.getAttribute("gap"), 10);
             // Ignore gaps before the first block.
-            if (!isNaN(newGap) && gaps.length > 0) {
-              gaps[gaps.length - 1] = newGap;
+            if (!isNaN(newGap) && this.gaps.length > 0) {
+              this.gaps[this.gaps.length - 1] = newGap;
             } else {
-              gaps.push(default_gap);
+              this.gaps.push(default_gap);
             }
           } else if (tagName == "LABEL" && xml.getAttribute("showStatusButton") == "true") {
             var curButton = new Blockly.FlyoutExtensionCategoryHeader(this.workspace_, this.targetWorkspace_, xml);
-            contents.push({ type: "button", button: curButton });
-            gaps.push(default_gap);
+            this.contents.push({ type: "button", button: curButton });
+            this.gaps.push(default_gap);
           } else if (tagName == "BUTTON" || tagName == "LABEL") {
             // Labels behave the same as buttons, but are styled differently.
             var isLabel = tagName == "LABEL";
             var curButton = new Blockly.FlyoutButton(this.workspace_, this.targetWorkspace_, xml, isLabel);
-            contents.push({ type: "button", button: curButton });
-            gaps.push(default_gap);
+            this.contents.push({ type: "button", button: curButton });
+            this.gaps.push(default_gap);
           }
         }
       }
 
       this.emptyRecycleBlocks_();
 
-      this.layout_(contents, gaps);
-
+      this.layout_(this.contents, this.gaps);
       // IE 11 is an incompetent browser that fails to fire mouseout events.
       // When the mouse is over the background, deselect all blocks.
       var deselectAll = function () {
@@ -442,6 +445,8 @@ export default async function ({ addon, msg, console }) {
       };
 
       this.listeners_.push(Blockly.bindEvent_(this.svgBackground_, "mouseover", this, deselectAll));
+
+      this.listeners_.push(Blockly.bindEvent_(this.input_, "input", this, this.onInput_));
 
       this.workspace_.setResizesEnabled(true);
       this.reflow();
@@ -455,13 +460,32 @@ export default async function ({ addon, msg, console }) {
       this.recordCategoryScrollPositions_();
     }
 
+    onInput_() {
+      let inputValue = this.input_.value;
+      const showContents = []
+      for (const item of this.contents) {
+        if (item.type === "block") {
+          let block = [];
+          for (const input of item.block.inputList) {
+            for (const field of input.fieldRow) {
+              block.push(field.text_);
+            }
+          }
+          if (inputValue.length === 0 || block.some((b) => b.includes(inputValue))) {
+            showContents.push(item);
+          }
+        }
+      }
+      this.layout_(showContents, this.gaps)
+    }
+
     emptyRecycleBlocks_() {
       // Clean out the old recycle bin.
-      var oldBlocks = this.recycleBlocks_;
-      this.recycleBlocks_ = [];
-      for (var i = 0; i < oldBlocks.length; i++) {
-        oldBlocks[i].dispose(false, false);
-      }
+      // var oldBlocks = this.recycleBlocks_;
+      // this.recycleBlocks_ = [];
+      // for (var i = 0; i < oldBlocks.length; i++) {
+      //   oldBlocks[i].dispose(false, false);
+      // }
     }
 
     layout_(contents, gaps) {
@@ -470,9 +494,20 @@ export default async function ({ addon, msg, console }) {
       var cursorX = margin;
       var cursorY = margin;
 
-      for (var i = 0, item; (item = contents[i]); i++) {
+      for (var i = 0, item; (item = this.contents[i]); i++) {
         if (item.type == "block") {
           var block = item.block;
+          if (!contents.includes(item)) {
+            if (block.rendered) {
+              block.dispose();
+            }
+            continue;
+          } else if (!block.rendered) {
+            const dom = this.xmlList.find((item) => item.getAttribute("type") === block.type);
+            item.block = Blockly.Xml.domToBlock(dom, this.workspace_)
+            block = item.block;
+          }
+
           var allBlocks = block.getDescendants(false);
           for (var j = 0, child; (child = allBlocks[j]); j++) {
             // Mark blocks as being inside a flyout.  This is used to detect and
@@ -485,18 +520,23 @@ export default async function ({ addon, msg, console }) {
 
           // Figure out where the block goes, taking into account its size, whether
           // we're in RTL mode, and whether it has a checkbox.
-          var oldX = block.getRelativeToSurfaceXY().x;
+          var {x: oldX, y: oldY} = block.getRelativeToSurfaceXY();
           var newX = flyoutWidth - this.MARGIN;
 
-          var moveX = this.RTL ? newX - oldX : margin;
+          var moveX = this.RTL ? newX : margin;
+          var moveY = cursorY + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
 
           // The block moves a bit extra for the hat, but the block's rectangle
-          // doesn't.  That's because the hat actually extends up from 0.
-          block.moveBy(moveX, cursorY + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0));
+          // doesn't. That's because the hat actually extends up from 0.
+          block.moveBy(moveX - oldX, moveY - oldY);
 
-          var rect = this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
+          if (!block.flyoutRect_) {
+            this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
+          }
 
-          this.addBlockListeners_(root, block, rect);
+          if (!block.bindedListeners) {
+            this.addBlockListeners_(root, block, block.flyoutRect_);
+          }
 
           cursorY += blockHW.height + gaps[i] + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
         } else if (item.type == "button") {
@@ -549,6 +589,7 @@ export default async function ({ addon, msg, console }) {
       this.listeners_.push(Blockly.bindEvent_(root, "mouseout", block, block.removeSelect));
       this.listeners_.push(Blockly.bindEvent_(rect, "mouseover", block, block.addSelect));
       this.listeners_.push(Blockly.bindEvent_(rect, "mouseout", block, block.removeSelect));
+      block.bindedListeners = true;
     }
 
     blockMouseDown_(block) {
