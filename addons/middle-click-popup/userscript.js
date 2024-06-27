@@ -342,7 +342,7 @@ export default async function ({ addon, msg, console }) {
       if (!targetFlyout) return;
       const flyoutWorkspace = targetFlyout.getWorkspace();
       if (!flyoutWorkspace) return;
-      const flyoutDom = Blockly.Xml.workspaceToDom(flyoutWorkspace)
+      const flyoutDom = Blockly.Xml.workspaceToDom(flyoutWorkspace);
       console.log(flyoutDom);
       this.xmlList = Blockly.Options.parseToolboxTree(flyoutDom).children;
 
