@@ -471,7 +471,7 @@ export default async function ({ addon, msg, console }) {
               block.push(field.text_);
             }
             if (input.connection) {
-              block.push("%s")
+              block.push("%s");
             }
           }
           const split = inputValue.split(" ");
@@ -483,7 +483,8 @@ export default async function ({ addon, msg, console }) {
             if (index < 0) {
               valid = false;
               break;
-            } if (index <= lastIndex) {
+            }
+            if (index <= lastIndex) {
               valid = false;
               break;
             }
