@@ -470,8 +470,26 @@ export default async function ({ addon, msg, console }) {
             for (const field of input.fieldRow) {
               block.push(field.text_);
             }
+            if (input.connection) {
+              block.push("%s")
+            }
           }
-          if (inputValue.length === 0 || block.some((b) => b.includes(inputValue))) {
+          const split = inputValue.split(" ");
+          let lastIndex = -1;
+          let valid = true;
+          for (const part of split) {
+            if (part === "") continue;
+            const index = block.findIndex((p) => p.includes(part));
+            if (index < 0) {
+              valid = false;
+              break;
+            } if (index <= lastIndex) {
+              valid = false;
+              break;
+            }
+            lastIndex = index;
+          }
+          if (inputValue.length === 0 || valid) {
             showContents.push(item);
           }
         }
