@@ -127,7 +127,7 @@ export default async function ({ addon, msg, console }) {
       this.input_.style.left = this.positionXY.x + this.MARGIN / 2 + "px";
       this.input_.style.top = this.positionXY.y + this.MARGIN / 2 + "px";
       this.input_.style.width = this.width_ - this.MARGIN * 2 + "px";
-      this.input_.focus()
+      this.input_.focus();
 
       if (this.scrollbar_) {
         // Set the scrollbars origin to be the top left of the popup.
@@ -265,7 +265,7 @@ export default async function ({ addon, msg, console }) {
       );
 
       this.clipRect_.setAttribute("x", 0);
-      this.clipRect_.setAttribute("y", this.TOP_MARGIN)
+      this.clipRect_.setAttribute("y", this.TOP_MARGIN);
       this.clipRect_.setAttribute("height", Math.max(0, metrics.viewHeight) + "px");
       this.clipRect_.setAttribute("width", metrics.viewWidth + "px");
 
@@ -356,8 +356,8 @@ export default async function ({ addon, msg, console }) {
       this.setXMLList();
 
       // Create the blocks to be shown in this flyout.
-      this. contents = [];
-      this. gaps = [];
+      this.contents = [];
+      this.gaps = [];
       this.permanentlyDisabled_.length = 0;
       for (var i = 0, xml; (xml = this.xmlList[i]); i++) {
         // Handle dynamic categories, represented by a name instead of a list of XML.
@@ -462,7 +462,7 @@ export default async function ({ addon, msg, console }) {
 
     onInput_() {
       let inputValue = this.input_.value;
-      const showContents = []
+      const showContents = [];
       for (const item of this.contents) {
         if (item.type === "block") {
           let block = [];
@@ -476,7 +476,7 @@ export default async function ({ addon, msg, console }) {
           }
         }
       }
-      this.layout_(showContents, this.gaps)
+      this.layout_(showContents, this.gaps);
     }
 
     emptyRecycleBlocks_() {
@@ -504,7 +504,7 @@ export default async function ({ addon, msg, console }) {
             continue;
           } else if (!block.rendered) {
             const dom = this.xmlList.find((item) => item.getAttribute("type") === block.type);
-            item.block = Blockly.Xml.domToBlock(dom, this.workspace_)
+            item.block = Blockly.Xml.domToBlock(dom, this.workspace_);
             block = item.block;
           }
 
@@ -520,7 +520,7 @@ export default async function ({ addon, msg, console }) {
 
           // Figure out where the block goes, taking into account its size, whether
           // we're in RTL mode, and whether it has a checkbox.
-          var {x: oldX, y: oldY} = block.getRelativeToSurfaceXY();
+          var { x: oldX, y: oldY } = block.getRelativeToSurfaceXY();
           var newX = flyoutWidth - this.MARGIN;
 
           var moveX = this.RTL ? newX : margin;
