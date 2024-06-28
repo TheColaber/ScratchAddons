@@ -465,16 +465,57 @@ export default async function ({ addon, msg, console }) {
       const variables = this.targetWorkspace_.getAllVariables();
       let inputValue = this.input_.value;
       const showContents = [];
+      const additionalBlocks = [];
+      const gaps = [...this.gaps]
       for (const item of this.contents) {
         if (item.type === "block") {
           let i = 0;
           let index = -1;
           let valid = true;
           const inputSplit = inputValue.split(" ");
+
+          const validateField = (field) => {
+            let valid = false;
+            const variableSelector = field.argType_.includes("variable");
+            if (field.argType_.includes("number") && isNaN(inputSplit[i])) {
+              return false;
+            } else if (field.argType_.includes("dropdown") || variableSelector) {
+              const menuOptions = Array.isArray(field.menuGenerator_) ? field.menuGenerator_ : field.menuGenerator_();
+              for (const [name, id] of menuOptions) {
+                if (name.includes(inputSplit[i])) {
+                  // Options like "Delete this variable" exist. Those can't actually be options.
+                  if (variableSelector && !variables.some((v) => v.getId() === id)) continue;
+                  // already found a valid result
+                  if (valid === true) {
+                    var xml = Blockly.Xml.blockToDom(item.block);
+                    var block = Blockly.Xml.domToBlock(xml, this.workspace_);
+
+                    const newItem = { type: "block", block };
+                    showContents.push(newItem);
+                    additionalBlocks.push(newItem);
+                    // todo
+                    gaps.push(12)
+                  }
+                  field.setValue(id);
+                  valid = true;
+                }
+              }
+            } else {
+              field.setValue(inputSplit[i]);
+              valid = true;
+            }
+            index = i;
+            i++;
+            while (inputSplit[i] === "") {
+              i++;
+            }
+            return valid;
+          }
+
           main: for (const input of item.block.inputList) {
             for (const field of input.fieldRow) {
               if (field instanceof Blockly.FieldDropdown) {
-                valid = validateField(field)
+                valid = validateField(field);
                 if (!valid || i === inputSplit.length) break main;
               } else {
                 for (const string of field.text_.split(" ")) {
@@ -490,43 +531,15 @@ export default async function ({ addon, msg, console }) {
                   }
                   if (i === inputSplit.length) break main;
                 }
-                }
+              }
             }
             if (input.connection) {
               const { targetConnection } = input.connection;
               if (targetConnection) {
                 const field = targetConnection.sourceBlock_.inputList[0].fieldRow[0];
-                valid = validateField(field)
+                valid = validateField(field);
                 if (!valid || i === inputSplit.length) break main;
               }
-            }
-
-            function validateField(field) {
-              let valid = false;
-              const variableSelector = field.argType_.includes("variable");
-              if (field.argType_.includes("number") && isNaN(inputSplit[i])) {
-                return false
-              } else if (field.argType_.includes("dropdown") || variableSelector) {
-                const menuOptions = Array.isArray(field.menuGenerator_) ? field.menuGenerator_ : field.menuGenerator_();
-                for (const [name, id] of menuOptions) {
-                  // TODO: make clones of this block
-                  if (name.includes(inputSplit[i])) {
-                    // Options like "Delete this variable" exist. Those can't actually be options.
-                    if (variableSelector && !variables.some((v) => v.getId() === id)) continue;
-                    field.setValue(id);
-                    valid = true;
-                  }
-                }
-              } else {
-                field.setValue(inputSplit[i]);
-                valid = true;
-              }
-              index = i;
-              i++;
-              while (inputSplit[i] === "") {
-                i++;
-              }
-              return valid;
             }
           }
           if (i !== inputSplit.length) valid = false;
@@ -536,7 +549,7 @@ export default async function ({ addon, msg, console }) {
           }
         }
       }
-      this.layout_(showContents, this.gaps);
+      this.layout_(showContents, gaps, additionalBlocks);
       this.scrollToStart();
     }
 
@@ -549,13 +562,13 @@ export default async function ({ addon, msg, console }) {
       // }
     }
 
-    layout_(contents, gaps) {
+    layout_(contents, gaps, additionalContents = []) {
       var margin = this.MARGIN;
       var flyoutWidth = this.getWidth() / this.workspace_.scale;
       var cursorX = margin;
       var cursorY = margin;
 
-      for (var i = 0, item; (item = this.contents[i]); i++) {
+      const doItem = (item) => {
         if (item.type == "block") {
           var block = item.block;
           if (!contents.includes(item)) {
@@ -563,7 +576,7 @@ export default async function ({ addon, msg, console }) {
             if (block.flyoutRect_) {
               block.flyoutRect_.style.display = "none";
             }
-            continue;
+            return;
           } else {
             block.svgGroup_.style.display = "block";
             if (block.flyoutRect_) {
@@ -619,6 +632,12 @@ export default async function ({ addon, msg, console }) {
           cursorY += button.height + gaps[i];
         }
       }
+
+      for (var i = 0, item; (item = this.contents[i]); i++) {
+        doItem(item)
+      }
+      additionalContents.forEach((item) => doItem(item));
+      // TODO: probably store something so that old additional contents go away.
     }
 
     createRect_(block, x, y, blockHW, index) {
