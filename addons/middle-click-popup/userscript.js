@@ -462,6 +462,7 @@ export default async function ({ addon, msg, console }) {
     }
 
     onInput_() {
+      const variables = this.targetWorkspace_.getAllVariables();
       let inputValue = this.input_.value;
       const showContents = [];
       for (const item of this.contents) {
@@ -470,67 +471,66 @@ export default async function ({ addon, msg, console }) {
           let index = -1;
           let valid = true;
           const inputSplit = inputValue.split(" ");
-          // for each input of input list
           main: for (const input of item.block.inputList) {
-            // for each field of field row
             for (const field of input.fieldRow) {
-              // if the field's text includes the user first spaced input
-              if (field.text_.includes(inputSplit[i])) {
-                // store i in index;
-                index = i;
-                // if user input not in the field
-              } else if (i === index + 1) {
-                valid = false;
-                break main;
-              }
-              i++;
-              while (inputSplit[i] === "") {
-                i++;
-              }
-              if (i === inputSplit.length) break main;
+              if (field instanceof Blockly.FieldDropdown) {
+                valid = validateField(field)
+                if (!valid || i === inputSplit.length) break main;
+              } else {
+                for (const string of field.text_.split(" ")) {
+                  if (string.includes(inputSplit[i])) {
+                    index = i;
+                  } else if (i === index + 1) {
+                    valid = false;
+                    break main;
+                  }
+                  i++;
+                  while (inputSplit[i] === "") {
+                    i++;
+                  }
+                  if (i === inputSplit.length) break main;
+                }
+                }
             }
             if (input.connection) {
-              // blockSplit.push("%s");
-              console.log(input);
-              if (input.connection.targetConnection) {
-                input.connection.targetConnection.sourceBlock_.inputList[0].fieldRow[0].setText(inputSplit[i]);
+              const { targetConnection } = input.connection;
+              if (targetConnection) {
+                const field = targetConnection.sourceBlock_.inputList[0].fieldRow[0];
+                valid = validateField(field)
+                if (!valid || i === inputSplit.length) break main;
+              }
+            }
+
+            function validateField(field) {
+              let valid = false;
+              const variableSelector = field.argType_.includes("variable");
+              if (field.argType_.includes("number") && isNaN(inputSplit[i])) {
+                return false
+              } else if (field.argType_.includes("dropdown") || variableSelector) {
+                const menuOptions = Array.isArray(field.menuGenerator_) ? field.menuGenerator_ : field.menuGenerator_();
+                for (const [name, id] of menuOptions) {
+                  // TODO: make clones of this block
+                  if (name.includes(inputSplit[i])) {
+                    // Options like "Delete this variable" exist. Those can't actually be options.
+                    if (variableSelector && !variables.some((v) => v.getId() === id)) continue;
+                    field.setValue(id);
+                    valid = true;
+                  }
+                }
+              } else {
+                field.setValue(inputSplit[i]);
+                valid = true;
               }
               index = i;
               i++;
               while (inputSplit[i] === "") {
                 i++;
               }
-              if (i === inputSplit.length) break main;
+              return valid;
             }
           }
-          // let lastIndex = -1;
-          // // let valid = true;
-          // for (let i = 0; i < inputSplit.length; i++) {
-          //   const input = inputSplit[i];
-          //   if (input === "") continue;
-          //   let index = -1;
-          //   for (let j = lastIndex + 1; j < blockSplit.length; j++) {
-          //     const block = blockSplit[j];
-          //     if (block === "%s" && lastIndex + 1 === j) {
-          //       index = j;
-          //       break;
-          //     }
-          //     if (block.includes(input)) {
-          //       index = j;
-          //       break;
-          //     }
-          //   }
+          if (i !== inputSplit.length) valid = false;
 
-          //   if (index < 0) {
-          //     valid = false;
-          //     break;
-          //   }
-          //   if (index <= lastIndex) {
-          //     valid = false;
-          //     break;
-          //   }
-          //   lastIndex = index;
-          // }
           if (valid) {
             showContents.push(item);
           }
