@@ -138,13 +138,13 @@ export default async function ({ addon, msg, console }) {
     }
 
     setBackgroundPath_(width, height) {
-      var path = ["M " + 0 + "," + this.TOP_MARGIN];
+      var path = ["M " + 0 + "," + 0];
       // Top.
       path.push("h", width);
       // Rounded corner.
       path.push("a", this.CORNER_RADIUS, this.CORNER_RADIUS, 0, 0, 1, this.CORNER_RADIUS, this.CORNER_RADIUS);
       // Side closest to workspace.
-      path.push("v", Math.max(0, height - this.CORNER_RADIUS * 2) - this.TOP_MARGIN);
+      path.push("v", Math.max(0, height + this.TOP_MARGIN - this.CORNER_RADIUS * 2) - this.TOP_MARGIN);
       // Rounded corner.
       path.push("a", this.CORNER_RADIUS, this.CORNER_RADIUS, 0, 0, 1, -this.CORNER_RADIUS, this.CORNER_RADIUS);
       // Bottom.
@@ -345,6 +345,7 @@ export default async function ({ addon, msg, console }) {
 
     show(x, y) {
       this.positionXY = { x, y };
+      this.input_.value = "";
 
       this.workspace_.setResizesEnabled(false);
       this.hide();
@@ -465,37 +466,78 @@ export default async function ({ addon, msg, console }) {
       const showContents = [];
       for (const item of this.contents) {
         if (item.type === "block") {
-          let block = [];
-          for (const input of item.block.inputList) {
+          let i = 0;
+          let index = -1;
+          let valid = true;
+          const inputSplit = inputValue.split(" ");
+          // for each input of input list
+          main: for (const input of item.block.inputList) {
+            // for each field of field row
             for (const field of input.fieldRow) {
-              block.push(field.text_);
+              // if the field's text includes the user first spaced input
+              if (field.text_.includes(inputSplit[i])) {
+                // store i in index;
+                index = i;
+                // if user input not in the field
+              } else if (i === index + 1) {
+                valid = false;
+                break main;
+              }
+              i++;
+              while (inputSplit[i] === "") {
+                i++;
+              }
+              if (i === inputSplit.length) break main;
             }
             if (input.connection) {
-              block.push("%s");
+              // blockSplit.push("%s");
+              console.log(input);
+              if (input.connection.targetConnection) {
+                input.connection.targetConnection.sourceBlock_.inputList[0].fieldRow[0].setText(inputSplit[i]);
+              }
+              index = i;
+              i++;
+              while (inputSplit[i] === "") {
+                i++;
+              }
+              if (i === inputSplit.length) break main;
             }
           }
-          const split = inputValue.split(" ");
-          let lastIndex = -1;
-          let valid = true;
-          for (const part of split) {
-            if (part === "") continue;
-            const index = block.findIndex((p) => p.includes(part));
-            if (index < 0) {
-              valid = false;
-              break;
-            }
-            if (index <= lastIndex) {
-              valid = false;
-              break;
-            }
-            lastIndex = index;
-          }
-          if (inputValue.length === 0 || valid) {
+          // let lastIndex = -1;
+          // // let valid = true;
+          // for (let i = 0; i < inputSplit.length; i++) {
+          //   const input = inputSplit[i];
+          //   if (input === "") continue;
+          //   let index = -1;
+          //   for (let j = lastIndex + 1; j < blockSplit.length; j++) {
+          //     const block = blockSplit[j];
+          //     if (block === "%s" && lastIndex + 1 === j) {
+          //       index = j;
+          //       break;
+          //     }
+          //     if (block.includes(input)) {
+          //       index = j;
+          //       break;
+          //     }
+          //   }
+
+          //   if (index < 0) {
+          //     valid = false;
+          //     break;
+          //   }
+          //   if (index <= lastIndex) {
+          //     valid = false;
+          //     break;
+          //   }
+          //   lastIndex = index;
+          // }
+          if (valid) {
             showContents.push(item);
           }
         }
       }
       this.layout_(showContents, this.gaps);
+      this.scrollToStart();
     }
 
     emptyRecycleBlocks_() {
@@ -517,14 +559,16 @@ export default async function ({ addon, msg, console }) {
         if (item.type == "block") {
           var block = item.block;
           if (!contents.includes(item)) {
-            if (block.rendered) {
-              block.dispose();
+            block.svgGroup_.style.display = "none";
+            if (block.flyoutRect_) {
+              block.flyoutRect_.style.display = "none";
             }
             continue;
-          } else if (!block.rendered) {
-            const dom = this.xmlList.find((item) => item.getAttribute("type") === block.type);
-            item.block = Blockly.Xml.domToBlock(dom, this.workspace_);
-            block = item.block;
+          } else {
+            block.svgGroup_.style.display = "block";
+            if (block.flyoutRect_) {
+              block.flyoutRect_.style.display = "block";
+            }
           }
 
           var allBlocks = block.getDescendants(false);
@@ -672,6 +716,10 @@ export default async function ({ addon, msg, console }) {
       if (this.svgGroup_) {
         this.svgGroup_.remove();
         this.svgGroup_ = null;
+      }
+      if (this.input_) {
+        this.input_.remove();
+        this.input_ = null;
       }
       this.parentToolbox_ = null;
       this.svgBackground_ = null;
