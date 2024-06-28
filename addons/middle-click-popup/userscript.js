@@ -359,7 +359,7 @@ export default async function ({ addon, msg, console }) {
       // Create the blocks to be shown in this flyout.
       this.contents = [];
       this.gaps = [];
-      this.additionalBlocks = []
+      this.additionalBlocks = [];
       this.permanentlyDisabled_.length = 0;
       for (var i = 0, xml; (xml = this.xmlList[i]); i++) {
         // Handle dynamic categories, represented by a name instead of a list of XML.
@@ -476,61 +476,77 @@ export default async function ({ addon, msg, console }) {
           const inputSplit = inputValue.split(" ");
 
           const validateField = (field) => {
-            let valid = false;
-            const variableSelector = field.argType_.includes("variable");
-            if (field.argType_.includes("number") && isNaN(inputSplit[i])) {
-              return false;
-            } else if (field.argType_.includes("dropdown") || variableSelector) {
-              const menuOptions = Array.isArray(field.menuGenerator_) ? field.menuGenerator_ : field.menuGenerator_();
-              for (const [name, id] of menuOptions) {
-                if (name.includes(inputSplit[i])) {
-                  // Options like "Delete this variable" exist. Those can't actually be options.
-                  if (variableSelector && !variables.some((v) => v.getId() === id)) continue;
-                  // already found a valid result
-                  if (valid === true) {
-                    var xml = Blockly.Xml.blockToDom(item.block);
-                    var block = Blockly.Xml.domToBlock(xml, this.workspace_);
+            const cloneBlock = () => {
+              var xml = Blockly.Xml.blockToDom(item.block);
+              var block = Blockly.Xml.domToBlock(xml, this.workspace_);
 
-                    const newItem = { type: "block", block };
-                    showContents.push(newItem);
-                    additionalBlocks.push(newItem);
-                    // todo
-                    gaps.push(12);
+              const newItem = { type: "block", block };
+              showContents.push(newItem);
+              additionalBlocks.push(newItem);
+              // todo
+              gaps.push(12);
+            };
+            const variableSelector = field.argType_.includes("variable");
+            if (field.argType_.includes("dropdown") || variableSelector) {
+              let valid = false;
+              const menuOptions = Array.isArray(field.menuGenerator_) ? field.menuGenerator_ : field.menuGenerator_();
+              menuOptions.forEach(([name, id], j) => {
+                // Options like "Delete this variable" exist. Those can't actually be options.
+                // The "record..." option also has a function an id.
+                if ((variableSelector && !variables.some((v) => v.getId() === id)) || typeof id !== "string") return;
+                if (i === inputSplit.length) {
+                  if (valid && inputValue.length > 0 && j - 1 !== menuOptions.length) {
+                    cloneBlock();
+                  }
+                  field.setValue(id);
+                  valid = true;
+                } else if (name.includes(inputSplit[i])) {
+                  // already found a valid result
+                  if (valid) {
+                    cloneBlock();
                   }
                   field.setValue(id);
                   valid = true;
                 }
+              })
+              if (i < inputSplit.length) iterate();
+              return valid;
+            } else if (i < inputSplit.length) {
+              if (field.argType_.includes("number") && isNaN(inputSplit[i])) {
+                iterate();
+                return false;
+              } else {
+                // TODO: not sure why we are currently getting an error now
+                if (!field.argType_.includes("colour")) {
+                  field.setValue(inputSplit[i]);
+                }
+                iterate();
               }
-            } else {
-              field.setValue(inputSplit[i]);
-              valid = true;
             }
+            return true;
+          };
+
+          const iterate = () => {
             index = i;
             i++;
             while (inputSplit[i] === "") {
               i++;
             }
-            return valid;
           };
 
           main: for (const input of item.block.inputList) {
             for (const field of input.fieldRow) {
               if (field instanceof Blockly.FieldDropdown) {
                 valid = validateField(field);
-                if (!valid || i === inputSplit.length) break main;
+                if (!valid) break main;
               } else {
                 for (const string of field.text_.split(" ")) {
-                  if (string.includes(inputSplit[i])) {
-                    index = i;
-                  } else if (i === index + 1) {
+                  if (i === inputSplit.length) continue;
+                  if (!string.includes(inputSplit[i]) && i === index + 1) {
                     valid = false;
                     break main;
                   }
-                  i++;
-                  while (inputSplit[i] === "") {
-                    i++;
-                  }
-                  if (i === inputSplit.length) break main;
+                  iterate();
                 }
               }
             }
@@ -543,7 +559,7 @@ export default async function ({ addon, msg, console }) {
               }
             }
           }
-          if (i !== inputSplit.length) valid = false;
+          if (i < inputSplit.length) valid = false;
 
           if (valid) {
             showContents.push(item);
@@ -637,7 +653,7 @@ export default async function ({ addon, msg, console }) {
       for (var i = 0, item; (item = this.contents[i]); i++) {
         doItem(item);
       }
-      this.additionalBlocks.forEach((item) => doItem(item))
+      this.additionalBlocks.forEach((item) => doItem(item));
       additionalContents.forEach((item) => doItem(item));
       this.additionalBlocks = additionalContents;
     }
