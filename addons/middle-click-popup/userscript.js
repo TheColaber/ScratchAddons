@@ -508,7 +508,7 @@ export default async function ({ addon, msg, console }) {
                   field.setValue(id);
                   valid = true;
                 }
-              })
+              });
               if (i < inputSplit.length) iterate();
               return valid;
             } else if (i < inputSplit.length) {
