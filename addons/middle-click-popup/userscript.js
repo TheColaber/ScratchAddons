@@ -466,7 +466,7 @@ export default async function ({ addon, msg, console }) {
       let inputValue = this.input_.value;
       const showContents = [];
       const additionalBlocks = [];
-      const gaps = [...this.gaps]
+      const gaps = [...this.gaps];
       for (const item of this.contents) {
         if (item.type === "block") {
           let i = 0;
@@ -494,7 +494,7 @@ export default async function ({ addon, msg, console }) {
                     showContents.push(newItem);
                     additionalBlocks.push(newItem);
                     // todo
-                    gaps.push(12)
+                    gaps.push(12);
                   }
                   field.setValue(id);
                   valid = true;
@@ -510,7 +510,7 @@ export default async function ({ addon, msg, console }) {
               i++;
             }
             return valid;
-          }
+          };
 
           main: for (const input of item.block.inputList) {
             for (const field of input.fieldRow) {
@@ -631,10 +631,10 @@ export default async function ({ addon, msg, console }) {
           this.buttons_.push(button);
           cursorY += button.height + gaps[i];
         }
-      }
+      };
 
       for (var i = 0, item; (item = this.contents[i]); i++) {
-        doItem(item)
+        doItem(item);
       }
       additionalContents.forEach((item) => doItem(item));
       // TODO: probably store something so that old additional contents go away.
