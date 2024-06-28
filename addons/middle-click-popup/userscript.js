@@ -359,6 +359,7 @@ export default async function ({ addon, msg, console }) {
       // Create the blocks to be shown in this flyout.
       this.contents = [];
       this.gaps = [];
+      this.additionalBlocks = []
       this.permanentlyDisabled_.length = 0;
       for (var i = 0, xml; (xml = this.xmlList[i]); i++) {
         // Handle dynamic categories, represented by a name instead of a list of XML.
@@ -636,8 +637,9 @@ export default async function ({ addon, msg, console }) {
       for (var i = 0, item; (item = this.contents[i]); i++) {
         doItem(item);
       }
+      this.additionalBlocks.forEach((item) => doItem(item))
       additionalContents.forEach((item) => doItem(item));
-      // TODO: probably store something so that old additional contents go away.
+      this.additionalBlocks = additionalContents;
     }
 
     createRect_(block, x, y, blockHW, index) {
