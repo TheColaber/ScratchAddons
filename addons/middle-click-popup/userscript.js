@@ -596,7 +596,7 @@ export default async function ({ addon, msg, console }) {
           }
           continue;
         } else if (block.removed) {
-          this.workspace_.svgBlockCanvas_.append(block.svgGroup_, block.flyoutRect_);
+          this.workspace_.getCanvas().append(block.svgGroup_, block.flyoutRect_);
         }
 
         var allBlocks = block.getDescendants(false);
@@ -621,12 +621,15 @@ export default async function ({ addon, msg, console }) {
         // doesn't. That's because the hat actually extends up from 0.
         block.moveBy(moveX - oldX, moveY - oldY);
 
-        if (!block.flyoutRect_) {
-          this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
+        let rect = block.flyoutRect_;
+        if (rect) {
+          rect.setAttribute("y", cursorY);
+        } else {
+          rect = this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
         }
 
         if (!block.bindedListeners) {
-          this.addBlockListeners_(root, block, block.flyoutRect_);
+          this.addBlockListeners_(root, block, rect);
         }
 
         cursorY += blockHW.height + gaps[i] + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
@@ -841,7 +844,7 @@ export default async function ({ addon, msg, console }) {
       if (delta) {
         // Firefox's mouse wheel deltas are a tenth that of Chrome/Safari.
         // DeltaMode is 1 for a mouse wheel, but not for a trackpad scroll event
-        // TODO
+        // TODO:
         // if (goog.userAgent.GECKO && (e.deltaMode === 1)) {
         //   delta *= 10;
         // }
@@ -911,6 +914,12 @@ export default async function ({ addon, msg, console }) {
       if (this.flyout_ === popup) return;
       popup.hide();
     }
+  };
+
+  const oldGetTopBlocks = Blockly.Workspace.prototype.getTopBlocks;
+  Blockly.Workspace.prototype.getTopBlocks = function (ordered) {
+    const topBlocks = oldGetTopBlocks.call(this, ordered);
+    return topBlocks.filter((b) => !b.removed);
   };
 
   document.addEventListener("mousemove", (e) => {
