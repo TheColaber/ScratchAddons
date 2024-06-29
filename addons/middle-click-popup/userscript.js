@@ -379,33 +379,7 @@ export default async function ({ addon, msg, console }) {
           var tagName = xml.tagName.toUpperCase();
           var default_gap = this.horizontalLayout_ ? this.GAP_X : this.GAP_Y;
           if (tagName == "BLOCK") {
-            // We assume that in a flyout, the same block id (or type if missing id) means
-            // the same output BlockSVG.
-
-            // Look for a block that matches the id or type, our createBlock will assign
-            // id = type if none existed.
-            var id = xml.getAttribute("id") || xml.getAttribute("type");
-            var recycled = this.recycleBlocks_.findIndex(function (block) {
-              return block.id === id;
-            });
-
-            // If we found a recycled item, reuse the BlockSVG from last time.
-            // Otherwise, convert the XML block to a BlockSVG.
-            var curBlock;
-            if (recycled > -1) {
-              curBlock = this.recycleBlocks_.splice(recycled, 1)[0];
-            } else {
-              curBlock = Blockly.Xml.domToBlock(xml, this.workspace_);
-            }
-
-            if (curBlock.disabled) {
-              // Record blocks that were initially disabled.
-              // Do not enable these blocks as a result of capacity filtering.
-              this.permanentlyDisabled_.push(curBlock);
-            }
-            this.contents.push({ type: "block", block: curBlock });
-            var gap = parseInt(xml.getAttribute("gap"), 10);
-            this.gaps.push(isNaN(gap) ? default_gap : gap);
+            this.contents.push(this.xmlToBlock(xml));
           } else if (xml.tagName.toUpperCase() == "SEP") {
             // Change the gap between two blocks.
             // <sep gap="36"></sep>
@@ -462,12 +436,42 @@ export default async function ({ addon, msg, console }) {
       this.recordCategoryScrollPositions_();
     }
 
+    xmlToBlock(xml) {
+      var default_gap = this.horizontalLayout_ ? this.GAP_X : this.GAP_Y;
+      // We assume that in a flyout, the same block id (or type if missing id) means
+      // the same output BlockSVG.
+      // Look for a block that matches the id or type, our createBlock will assign
+      // id = type if none existed.
+      var id = xml.getAttribute("id") || xml.getAttribute("type");
+      var recycled = this.recycleBlocks_.findIndex(function (block) {
+        return block.id === id;
+      });
+
+      // If we found a recycled item, reuse the BlockSVG from last time.
+      // Otherwise, convert the XML block to a BlockSVG.
+      var curBlock;
+      if (recycled > -1) {
+        curBlock = this.recycleBlocks_.splice(recycled, 1)[0];
+      } else {
+        curBlock = Blockly.Xml.domToBlock(xml, this.workspace_);
+      }
+
+      if (curBlock.disabled) {
+        // Record blocks that were initially disabled.
+        // Do not enable these blocks as a result of capacity filtering.
+        this.permanentlyDisabled_.push(curBlock);
+      }
+      const content = { type: "block", block: curBlock };
+      var gap = parseInt(xml.getAttribute("gap"), 10);
+      this.gaps.push(isNaN(gap) ? default_gap : gap);
+      return content;
+    }
+
     onInput_() {
       const variables = this.targetWorkspace_.getAllVariables();
       let inputValue = this.input_.value;
       const showContents = [];
       const additionalBlocks = [];
-      const gaps = [...this.gaps];
       for (const item of this.contents) {
         if (item.type === "block") {
           let i = 0;
@@ -478,13 +482,9 @@ export default async function ({ addon, msg, console }) {
           const validateField = (field) => {
             const cloneBlock = () => {
               var xml = Blockly.Xml.blockToDom(item.block);
-              var block = Blockly.Xml.domToBlock(xml, this.workspace_);
-
-              const newItem = { type: "block", block };
-              showContents.push(newItem);
-              additionalBlocks.push(newItem);
-              // todo
-              gaps.push(12);
+              const content = this.xmlToBlock(xml);
+              showContents.push(content);
+              additionalBlocks.push(content);
             };
             const variableSelector = field.argType_.includes("variable");
             if (field.argType_.includes("dropdown") || variableSelector) {
@@ -566,7 +566,7 @@ export default async function ({ addon, msg, console }) {
           }
         }
       }
-      this.layout_(showContents, gaps, additionalBlocks);
+      this.layout_(showContents, this.gaps, additionalBlocks);
       this.scrollToStart();
     }
 
@@ -582,79 +582,57 @@ export default async function ({ addon, msg, console }) {
     layout_(contents, gaps, additionalContents = []) {
       var margin = this.MARGIN;
       var flyoutWidth = this.getWidth() / this.workspace_.scale;
-      var cursorX = margin;
       var cursorY = margin;
 
-      const doItem = (item) => {
-        if (item.type == "block") {
-          var block = item.block;
-          if (!contents.includes(item)) {
-            block.svgGroup_.style.display = "none";
-            if (block.flyoutRect_) {
-              block.flyoutRect_.style.display = "none";
-            }
-            return;
-          } else {
-            block.svgGroup_.style.display = "block";
-            if (block.flyoutRect_) {
-              block.flyoutRect_.style.display = "block";
-            }
+      const allContent = [...this.contents, ...this.additionalBlocks, ...additionalContents];
+
+      for (var i = 0, item; (item = allContent[i]); i++) {
+        var block = item.block;
+        if (!contents.includes(item)) {
+          block.removed = true;
+          block.svgGroup_.remove();
+          if (block.flyoutRect_) {
+            block.flyoutRect_.remove();
           }
-
-          var allBlocks = block.getDescendants(false);
-          for (var j = 0, child; (child = allBlocks[j]); j++) {
-            // Mark blocks as being inside a flyout.  This is used to detect and
-            // prevent the closure of the flyout if the user right-clicks on such a
-            // block.
-            child.isInFlyout = true;
-          }
-          var root = block.getSvgRoot();
-          var blockHW = block.getHeightWidth();
-
-          // Figure out where the block goes, taking into account its size, whether
-          // we're in RTL mode, and whether it has a checkbox.
-          var { x: oldX, y: oldY } = block.getRelativeToSurfaceXY();
-          var newX = flyoutWidth - this.MARGIN;
-
-          var moveX = this.RTL ? newX : margin;
-          var moveY = cursorY + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
-
-          // The block moves a bit extra for the hat, but the block's rectangle
-          // doesn't. That's because the hat actually extends up from 0.
-          block.moveBy(moveX - oldX, moveY - oldY);
-
-          if (!block.flyoutRect_) {
-            this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
-          }
-
-          if (!block.bindedListeners) {
-            this.addBlockListeners_(root, block, block.flyoutRect_);
-          }
-
-          cursorY += blockHW.height + gaps[i] + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
-        } else if (item.type == "button") {
-          var button = item.button;
-          var buttonSvg = button.createDom();
-          if (this.RTL) {
-            button.moveTo(flyoutWidth - this.MARGIN - button.width, cursorY);
-          } else {
-            button.moveTo(cursorX, cursorY);
-          }
-          button.show();
-          // Clicking on a flyout button or label is a lot like clicking on the
-          // flyout background.
-          this.listeners_.push(Blockly.bindEventWithChecks_(buttonSvg, "mousedown", this, this.onMouseDown_));
-
-          this.buttons_.push(button);
-          cursorY += button.height + gaps[i];
+          continue;
+        } else if (block.removed) {
+          this.workspace_.svgBlockCanvas_.append(block.svgGroup_, block.flyoutRect_);
         }
-      };
 
-      for (var i = 0, item; (item = this.contents[i]); i++) {
-        doItem(item);
+        var allBlocks = block.getDescendants(false);
+        for (var j = 0, child; (child = allBlocks[j]); j++) {
+          // Mark blocks as being inside a flyout.  This is used to detect and
+          // prevent the closure of the flyout if the user right-clicks on such a
+          // block.
+          child.isInFlyout = true;
+        }
+        var root = block.getSvgRoot();
+        var blockHW = block.getHeightWidth();
+
+        // Figure out where the block goes, taking into account its size, whether
+        // we're in RTL mode, and whether it has a checkbox.
+        var { x: oldX, y: oldY } = block.getRelativeToSurfaceXY();
+        var newX = flyoutWidth - this.MARGIN;
+
+        var moveX = this.RTL ? newX : margin;
+        var moveY = cursorY + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
+
+        // The block moves a bit extra for the hat, but the block's rectangle
+        // doesn't. That's because the hat actually extends up from 0.
+        block.moveBy(moveX - oldX, moveY - oldY);
+
+        if (!block.flyoutRect_) {
+          this.createRect_(block, this.RTL ? moveX - blockHW.width : moveX, cursorY, blockHW, i);
+        }
+
+        if (!block.bindedListeners) {
+          this.addBlockListeners_(root, block, block.flyoutRect_);
+        }
+
+        cursorY += blockHW.height + gaps[i] + (block.startHat_ ? Blockly.BlockSvg.START_HAT_HEIGHT : 0);
       }
-      this.additionalBlocks.forEach((item) => doItem(item));
-      additionalContents.forEach((item) => doItem(item));
+      // this.additionalBlocks.forEach((item) => doItem(item));
+      // additionalContents.forEach((item) => doItem(item));
       this.additionalBlocks = additionalContents;
     }
 
